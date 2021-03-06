@@ -50,6 +50,29 @@ describe('valueToEstree', () => {
     });
   });
 
+  it('should handle positive bigints', () => {
+    expect(valueToEstree(1337n)).toStrictEqual({
+      type: 'Literal',
+      value: 1337n,
+      raw: '1337n',
+      bigint: '1337',
+    });
+  });
+
+  it('should handle negative bigints', () => {
+    expect(valueToEstree(-1337n)).toStrictEqual({
+      type: 'UnaryExpression',
+      operator: '-',
+      prefix: true,
+      argument: {
+        type: 'Literal',
+        value: 1337n,
+        raw: '1337n',
+        bigint: '1337',
+      },
+    });
+  });
+
   it('should handle strings', () => {
     expect(valueToEstree('Hello')).toStrictEqual({
       type: 'Literal',

@@ -26,6 +26,9 @@
     "language",
     "unist"
   ],
+  "engines": {
+    "node": ">=12.0.0"
+  },
   "scripts": {
     "prepack": "tsc --project tsconfig.build.json",
     "test": "jest"

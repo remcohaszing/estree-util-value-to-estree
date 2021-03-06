@@ -1,12 +1,12 @@
 {
   "compilerOptions": {
     "declaration": true,
-    "lib": ["es2019", "dom"],
+    "lib": ["es2020", "dom"],
     "module": "commonjs",
     "noEmit": true,
     "noImplicitAny": true,
     "rootDir": "src",
     "strict": true,
-    "target": "es2019"
+    "target": "es2020"
   }
 }

@@ -13,7 +13,26 @@ npm install estree-util-value-to-estree
 
 ## Usage
 
-This package converts a JavaScript value to an [estree][] if this can be constructed.
+This package converts a JavaScript value to an [estree][] for values that can be constructed without
+the need for a context.
+
+Currently the following types are supported:
+
+- arrays
+- bigints
+- booleans
+- dates
+- null
+- numbers (including `Infinity`, `NaN`, and negative numbers)
+- objects (plain objects only)
+- regular expressions
+- strings
+- symbols (only global symbols)
+- typed arrays (`Float32Array`, `Float64Array`, `Uint8Array`, `Uint8ClampedArray`, `Uint16Array`,
+  and`Uint32Array`)
+- undefined
+- URL objects
+- URLSearchParams objects
 
 ```js
 import { deepEqual } from 'assert';

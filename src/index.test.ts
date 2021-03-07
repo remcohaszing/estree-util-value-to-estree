@@ -109,12 +109,13 @@ describe('valueToEstree', () => {
   });
 
   it('should handle arrays', () => {
-    expect(valueToEstree([1, '2', null])).toStrictEqual({
+    expect(valueToEstree([1, '2', , undefined])).toStrictEqual({
       type: 'ArrayExpression',
       elements: [
         { type: 'Literal', value: 1, raw: '1' },
         { type: 'Literal', value: '2', raw: '"2"' },
-        { type: 'Literal', value: null, raw: 'null' },
+        null,
+        { type: 'Identifier', name: 'undefined' },
       ],
     });
   });

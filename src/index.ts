@@ -89,7 +89,11 @@ export function valueToEstree(value?: Value): Expression {
     throw new TypeError(`Only global symbols are supported, got: ${String(value)}`);
   }
   if (Array.isArray(value)) {
-    return { type: 'ArrayExpression', elements: value.map(valueToEstree) };
+    const elements: (Expression | null)[] = [];
+    for (let i = 0; i < value.length; i += 1) {
+      elements.push(i in value ? valueToEstree(value[i]) : null);
+    }
+    return { type: 'ArrayExpression', elements };
   }
   if (value instanceof RegExp) {
     return {

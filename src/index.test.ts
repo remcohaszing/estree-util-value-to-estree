@@ -198,6 +198,27 @@ describe('valueToEstree', () => {
     });
   });
 
+  it('should handle global symbols', () => {
+    expect(valueToEstree(Symbol.for('global'))).toStrictEqual({
+      type: 'CallExpression',
+      optional: false,
+      callee: {
+        type: 'MemberExpression',
+        computed: false,
+        optional: false,
+        object: { type: 'Identifier', name: 'Symbol' },
+        property: { type: 'Identifier', name: 'for' },
+      },
+      arguments: [{ type: 'Literal', value: 'global', raw: '"global"' }],
+    });
+  });
+
+  it('should throw for local symbols', () => {
+    expect(() => valueToEstree(Symbol('local'))).toThrow(
+      new TypeError('Only global symbols are supported, got: Symbol(local)'),
+    );
+  });
+
   it('should handle URL', () => {
     expect(valueToEstree(new URL('https://example.com'))).toStrictEqual({
       type: 'NewExpression',

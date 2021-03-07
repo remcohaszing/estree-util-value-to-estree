@@ -27,6 +27,7 @@ export type Value =
   | boolean
   | number
   | string
+  | symbol
   // eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style
   | { [key: string]: Value }
   | null
@@ -61,6 +62,23 @@ export function valueToEstree(value?: Value): Expression {
   }
   if (typeof value === 'string') {
     return { type: 'Literal', value, raw: JSON.stringify(value) };
+  }
+  if (typeof value === 'symbol') {
+    if (value.description && value === Symbol.for(value.description)) {
+      return {
+        type: 'CallExpression',
+        optional: false,
+        callee: {
+          type: 'MemberExpression',
+          computed: false,
+          optional: false,
+          object: { type: 'Identifier', name: 'Symbol' },
+          property: { type: 'Identifier', name: 'for' },
+        },
+        arguments: [valueToEstree(value.description)],
+      };
+    }
+    throw new TypeError(`Only global symbols are supported, got: ${String(value)}`);
   }
   if (Array.isArray(value)) {
     return { type: 'ArrayExpression', elements: value.map(valueToEstree) };
@@ -115,5 +133,5 @@ export function valueToEstree(value?: Value): Expression {
       })),
     };
   }
-  throw new TypeError(`Unsupported value: ${value}`);
+  throw new TypeError(`Unsupported value: ${String(value)}`);
 }

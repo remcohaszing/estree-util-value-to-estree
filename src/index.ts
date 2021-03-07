@@ -5,7 +5,13 @@ import { Expression } from 'estree';
  */
 export type Value =
   | Date
+  | Float32Array
+  | Float64Array
   | RegExp
+  | Uint8Array
+  | Uint8ClampedArray
+  | Uint16Array
+  | Uint32Array
   | Value[]
   | boolean
   | number
@@ -66,6 +72,20 @@ export function valueToEstree(value?: Value): Expression {
       type: 'NewExpression',
       callee: { type: 'Identifier', name: 'Date' },
       arguments: [valueToEstree(value.getTime())],
+    };
+  }
+  if (
+    value instanceof Float32Array ||
+    value instanceof Float64Array ||
+    value instanceof Uint8Array ||
+    value instanceof Uint8ClampedArray ||
+    value instanceof Uint16Array ||
+    value instanceof Uint32Array
+  ) {
+    return {
+      type: 'NewExpression',
+      callee: { type: 'Identifier', name: value.constructor.name },
+      arguments: [valueToEstree([...value])],
     };
   }
   return {

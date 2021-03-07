@@ -185,8 +185,9 @@ deepEqual(result, {
 [codecov]: https://codecov.io/gh/remcohaszing/estree-util-value-to-estree
 [estree]: https://github.com/estree/estree
 [github actions badge]:
-  https://github.com/remcohaszing/estree-util-value-to-estree/workflows/ci/badge.svg
-[github actions]: https://github.com/remcohaszing/estree-util-value-to-estree/actions
+  https://github.com/remcohaszing/estree-util-value-to-estree/actions/workflows/ci.yml/badge.svg
+[github actions]:
+  https://github.com/remcohaszing/estree-util-value-to-estree/actions/workflows/ci.yml
 [jest badge]: https://jestjs.io/img/jest-badge.svg
 [jest]: https://jestjs.io
 [npm badge]: https://img.shields.io/npm/v/estree-util-value-to-estree

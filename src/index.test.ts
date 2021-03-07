@@ -260,4 +260,16 @@ describe('valueToEstree', () => {
       ],
     });
   });
+
+  it('should throw for unsupported values', () => {
+    // @ts-expect-error This tests an unsupported value.
+    expect(() => valueToEstree(() => null)).toThrow(new TypeError('Unsupported value: () => null'));
+    class A {
+      a = '';
+    }
+    // @ts-expect-error This tests an unsupported value.
+    expect(() => valueToEstree(new A())).toThrow(
+      new TypeError('Unsupported value: [object Object]'),
+    );
+  });
 });

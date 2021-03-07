@@ -1,4 +1,5 @@
 import { Expression } from 'estree';
+import isPlainObject = require('is-plain-obj');
 
 // https://github.com/DefinitelyTyped/DefinitelyTyped/issues/34960#issuecomment-576906058
 declare const URL: typeof globalThis extends { URL: infer URLCtor }
@@ -100,16 +101,19 @@ export function valueToEstree(value?: Value): Expression {
       arguments: [valueToEstree(String(value))],
     };
   }
-  return {
-    type: 'ObjectExpression',
-    properties: Object.entries(value).map(([name, val]) => ({
-      type: 'Property',
-      method: false,
-      shorthand: false,
-      computed: false,
-      kind: 'init',
-      key: valueToEstree(name),
-      value: valueToEstree(val),
-    })),
-  };
+  if (isPlainObject(value)) {
+    return {
+      type: 'ObjectExpression',
+      properties: Object.entries(value).map(([name, val]) => ({
+        type: 'Property',
+        method: false,
+        shorthand: false,
+        computed: false,
+        kind: 'init',
+        key: valueToEstree(name),
+        value: valueToEstree(val),
+      })),
+    };
+  }
+  throw new TypeError(`Unsupported value: ${value}`);
 }

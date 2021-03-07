@@ -27,7 +27,8 @@
     "unist"
   ],
   "scripts": {
-    "prepack": "tsc --project tsconfig.build.json"
+    "prepack": "tsc --project tsconfig.build.json",
+    "test": "jest"
   },
   "devDependencies": {
     "@types/estree": "^0.0.46",

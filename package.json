@@ -1,7 +1,7 @@
 {
   "name": "estree-util-value-to-estree",
   "description": "Convert a JavaScript value to an estree expression",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "main": "dist/index.js",
   "files": [
     "dist"
@@ -17,7 +17,7 @@
   },
   "homepage": "https://github.com/remcohaszing/estree-util-value-to-estree#readme",
   "engines": {
-    "node": ">=10.0.0"
+    "node": ">=12.0.0"
   },
   "keywords": [
     "esast",
@@ -26,9 +26,6 @@
     "language",
     "unist"
   ],
-  "engines": {
-    "node": ">=12.0.0"
-  },
   "scripts": {
     "prepack": "tsc --project tsconfig.build.json",
     "test": "jest"

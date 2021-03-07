@@ -1,5 +1,13 @@
 import { Expression } from 'estree';
 
+// https://github.com/DefinitelyTyped/DefinitelyTyped/issues/34960#issuecomment-576906058
+declare const URL: typeof globalThis extends { URL: infer URLCtor }
+  ? URLCtor
+  : typeof import('url').URL;
+declare const URLSearchParams: typeof globalThis extends { URL: infer URLSearchParamsCtor }
+  ? URLSearchParamsCtor
+  : typeof import('url').URLSearchParams;
+
 /**
  * A value that can be serialized by `estree-util-from-value`.
  */
@@ -12,17 +20,14 @@ export type Value =
   | Uint8ClampedArray
   | Uint16Array
   | Uint32Array
+  | URL
+  | URLSearchParams
   | Value[]
   | boolean
   | number
   | string
   // eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style
-  | {
-      /**
-       * Recursively allow serializing values in objects.
-       */
-      [key: string]: Value;
-    }
+  | { [key: string]: Value }
   | null
   | undefined;
 
@@ -86,6 +91,13 @@ export function valueToEstree(value?: Value): Expression {
       type: 'NewExpression',
       callee: { type: 'Identifier', name: value.constructor.name },
       arguments: [valueToEstree([...value])],
+    };
+  }
+  if (value instanceof URL || value instanceof URLSearchParams) {
+    return {
+      type: 'NewExpression',
+      callee: { type: 'Identifier', name: value.constructor.name },
+      arguments: [valueToEstree(String(value))],
     };
   }
   return {

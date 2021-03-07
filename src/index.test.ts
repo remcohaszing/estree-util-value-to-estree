@@ -198,6 +198,34 @@ describe('valueToEstree', () => {
     });
   });
 
+  it('should handle URL', () => {
+    expect(valueToEstree(new URL('https://example.com'))).toStrictEqual({
+      type: 'NewExpression',
+      callee: { type: 'Identifier', name: 'URL' },
+      arguments: [
+        {
+          type: 'Literal',
+          value: 'https://example.com/',
+          raw: '"https://example.com/"',
+        },
+      ],
+    });
+  });
+
+  it('should handle URLSearchParams', () => {
+    expect(valueToEstree(new URLSearchParams('everything=awesome'))).toStrictEqual({
+      type: 'NewExpression',
+      callee: { type: 'Identifier', name: 'URLSearchParams' },
+      arguments: [
+        {
+          type: 'Literal',
+          value: 'everything=awesome',
+          raw: '"everything=awesome"',
+        },
+      ],
+    });
+  });
+
   it('should handle object literals', () => {
     expect(valueToEstree({ number: 1, string: 'Hello', nothing: null })).toStrictEqual({
       type: 'ObjectExpression',

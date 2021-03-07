@@ -16,6 +16,9 @@
     "url": "https://github.com/remcohaszing/estree-util-value-to-estree/issues"
   },
   "homepage": "https://github.com/remcohaszing/estree-util-value-to-estree#readme",
+  "engines": {
+    "node": ">=10.0.0"
+  },
   "keywords": [
     "esast",
     "estree",

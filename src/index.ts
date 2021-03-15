@@ -24,6 +24,7 @@ export type Value =
   | URL
   | URLSearchParams
   | Value[]
+  | ValueSet
   | bigint
   | boolean
   | number
@@ -33,6 +34,8 @@ export type Value =
   | { [key: string]: Value }
   | null
   | undefined;
+
+type ValueSet = Set<Value>;
 
 /**
  * Convert a value to an ESTree node
@@ -113,6 +116,7 @@ export function valueToEstree(value?: Value): Expression {
   if (
     value instanceof Float32Array ||
     value instanceof Float64Array ||
+    value instanceof Set ||
     value instanceof Uint8Array ||
     value instanceof Uint8ClampedArray ||
     value instanceof Uint16Array ||

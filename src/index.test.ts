@@ -154,6 +154,22 @@ describe('valueToEstree', () => {
     });
   });
 
+  it('should handle sets', () => {
+    expect(valueToEstree(new Set([42, 'not 42']))).toStrictEqual({
+      type: 'NewExpression',
+      callee: { type: 'Identifier', name: 'Set' },
+      arguments: [
+        {
+          type: 'ArrayExpression',
+          elements: [
+            { type: 'Literal', value: 42, raw: '42' },
+            { type: 'Literal', value: 'not 42', raw: '"not 42"' },
+          ],
+        },
+      ],
+    });
+  });
+
   it('should handle Uint8Arrays', () => {
     expect(valueToEstree(new Uint8Array([1, 2, 3]))).toStrictEqual({
       type: 'NewExpression',

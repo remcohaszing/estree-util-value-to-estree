@@ -26,6 +26,7 @@ Currently the following types are supported:
 - numbers (including `Infinity`, `NaN`, and negative numbers)
 - objects (plain objects only)
 - regular expressions
+- sets
 - strings
 - symbols (only global symbols)
 - typed arrays (`Float32Array`, `Float64Array`, `Uint8Array`, `Uint8ClampedArray`, `Uint16Array`,

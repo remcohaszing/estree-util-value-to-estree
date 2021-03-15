@@ -1,4 +1,4 @@
-import { valueToEstree } from '.';
+import { Value, valueToEstree } from '.';
 
 describe('valueToEstree', () => {
   it('should handle undefined', () => {
@@ -103,6 +103,41 @@ describe('valueToEstree', () => {
           type: 'Literal',
           value: 1_234_567_890_123,
           raw: '1234567890123',
+        },
+      ],
+    });
+  });
+
+  it('should handle maps', () => {
+    expect(
+      valueToEstree(
+        new Map<Value, Value>([
+          [{}, 42],
+          [42, {}],
+        ]),
+      ),
+    ).toStrictEqual({
+      type: 'NewExpression',
+      callee: { type: 'Identifier', name: 'Map' },
+      arguments: [
+        {
+          type: 'ArrayExpression',
+          elements: [
+            {
+              type: 'ArrayExpression',
+              elements: [
+                { type: 'ObjectExpression', properties: [] },
+                { type: 'Literal', value: 42, raw: '42' },
+              ],
+            },
+            {
+              type: 'ArrayExpression',
+              elements: [
+                { type: 'Literal', value: 42, raw: '42' },
+                { type: 'ObjectExpression', properties: [] },
+              ],
+            },
+          ],
         },
       ],
     });

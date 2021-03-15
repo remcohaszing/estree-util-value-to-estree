@@ -29,6 +29,7 @@ export type Value =
   | URL
   | URLSearchParams
   | Value[]
+  | ValueMap
   | ValueSet
   | bigint
   | boolean
@@ -41,6 +42,7 @@ export type Value =
   | undefined;
 
 type ValueSet = Set<Value>;
+type ValueMap = Map<Value, Value>;
 
 /**
  * Convert a value to an ESTree node
@@ -116,6 +118,13 @@ export function valueToEstree(value?: Value): Expression {
       type: 'NewExpression',
       callee: { type: 'Identifier', name: 'Date' },
       arguments: [valueToEstree(value.getTime())],
+    };
+  }
+  if (value instanceof Map) {
+    return {
+      type: 'NewExpression',
+      callee: { type: 'Identifier', name: 'Map' },
+      arguments: [valueToEstree([...value.entries()])],
     };
   }
   if (

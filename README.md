@@ -22,6 +22,7 @@ Currently the following types are supported:
 - bigints
 - booleans
 - dates
+- maps
 - null
 - numbers (including `Infinity`, `NaN`, and negative numbers)
 - objects (plain objects only)

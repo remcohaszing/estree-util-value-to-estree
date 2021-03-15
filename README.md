@@ -29,8 +29,8 @@ Currently the following types are supported:
 - sets
 - strings
 - symbols (only global symbols)
-- typed arrays (`Float32Array`, `Float64Array`, `Uint8Array`, `Uint8ClampedArray`, `Uint16Array`,
-  and`Uint32Array`)
+- typed arrays (`BigInt64Array`, `BigUint64Array`, `Float32Array`, `Float64Array`, `Int8Array`,
+  `Int16Array`, `Int32Array`, `Uint8Array`, `Uint8ClampedArray`, `Uint16Array`, and`Uint32Array`)
 - undefined
 - URL objects
 - URLSearchParams objects

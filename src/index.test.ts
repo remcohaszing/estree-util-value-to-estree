@@ -120,6 +120,40 @@ describe('valueToEstree', () => {
     });
   });
 
+  it('should handle BigInt64Array', () => {
+    expect(valueToEstree(new BigInt64Array([1n, 2n, 3n]))).toStrictEqual({
+      type: 'NewExpression',
+      callee: { type: 'Identifier', name: 'BigInt64Array' },
+      arguments: [
+        {
+          type: 'ArrayExpression',
+          elements: [
+            { type: 'Literal', value: 1n, raw: '1n', bigint: '1' },
+            { type: 'Literal', value: 2n, raw: '2n', bigint: '2' },
+            { type: 'Literal', value: 3n, raw: '3n', bigint: '3' },
+          ],
+        },
+      ],
+    });
+  });
+
+  it('should handle BigUint64Array', () => {
+    expect(valueToEstree(new BigUint64Array([1n, 2n, 3n]))).toStrictEqual({
+      type: 'NewExpression',
+      callee: { type: 'Identifier', name: 'BigUint64Array' },
+      arguments: [
+        {
+          type: 'ArrayExpression',
+          elements: [
+            { type: 'Literal', value: 1n, raw: '1n', bigint: '1' },
+            { type: 'Literal', value: 2n, raw: '2n', bigint: '2' },
+            { type: 'Literal', value: 3n, raw: '3n', bigint: '3' },
+          ],
+        },
+      ],
+    });
+  });
+
   it('should handle Float32Array', () => {
     expect(valueToEstree(new Float32Array([1, 2, 3]))).toStrictEqual({
       type: 'NewExpression',
@@ -141,6 +175,57 @@ describe('valueToEstree', () => {
     expect(valueToEstree(new Float64Array([1, 2, 3]))).toStrictEqual({
       type: 'NewExpression',
       callee: { type: 'Identifier', name: 'Float64Array' },
+      arguments: [
+        {
+          type: 'ArrayExpression',
+          elements: [
+            { type: 'Literal', value: 1, raw: '1' },
+            { type: 'Literal', value: 2, raw: '2' },
+            { type: 'Literal', value: 3, raw: '3' },
+          ],
+        },
+      ],
+    });
+  });
+
+  it('should handle Int8Array', () => {
+    expect(valueToEstree(new Int8Array([1, 2, 3]))).toStrictEqual({
+      type: 'NewExpression',
+      callee: { type: 'Identifier', name: 'Int8Array' },
+      arguments: [
+        {
+          type: 'ArrayExpression',
+          elements: [
+            { type: 'Literal', value: 1, raw: '1' },
+            { type: 'Literal', value: 2, raw: '2' },
+            { type: 'Literal', value: 3, raw: '3' },
+          ],
+        },
+      ],
+    });
+  });
+
+  it('should handle Int16Array', () => {
+    expect(valueToEstree(new Int16Array([1, 2, 3]))).toStrictEqual({
+      type: 'NewExpression',
+      callee: { type: 'Identifier', name: 'Int16Array' },
+      arguments: [
+        {
+          type: 'ArrayExpression',
+          elements: [
+            { type: 'Literal', value: 1, raw: '1' },
+            { type: 'Literal', value: 2, raw: '2' },
+            { type: 'Literal', value: 3, raw: '3' },
+          ],
+        },
+      ],
+    });
+  });
+
+  it('should handle Int32Array', () => {
+    expect(valueToEstree(new Int32Array([1, 2, 3]))).toStrictEqual({
+      type: 'NewExpression',
+      callee: { type: 'Identifier', name: 'Int32Array' },
       arguments: [
         {
           type: 'ArrayExpression',

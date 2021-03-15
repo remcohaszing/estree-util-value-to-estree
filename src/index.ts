@@ -13,9 +13,14 @@ declare const URLSearchParams: typeof globalThis extends { URL: infer URLSearchP
  * A value that can be serialized by `estree-util-from-value`.
  */
 export type Value =
+  | BigInt64Array
+  | BigUint64Array
   | Date
   | Float32Array
   | Float64Array
+  | Int8Array
+  | Int16Array
+  | Int32Array
   | RegExp
   | Uint8Array
   | Uint8ClampedArray
@@ -114,8 +119,13 @@ export function valueToEstree(value?: Value): Expression {
     };
   }
   if (
+    value instanceof BigInt64Array ||
+    value instanceof BigUint64Array ||
     value instanceof Float32Array ||
     value instanceof Float64Array ||
+    value instanceof Int8Array ||
+    value instanceof Int16Array ||
+    value instanceof Int32Array ||
     value instanceof Set ||
     value instanceof Uint8Array ||
     value instanceof Uint8ClampedArray ||

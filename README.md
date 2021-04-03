@@ -202,7 +202,7 @@ deepEqual(result, {
 ```
 
 [codecov badge]:
-  https://codecov.io/gh/remcohaszing/estree-util-value-to-estree/branch/master/graph/badge.svg
+  https://codecov.io/gh/remcohaszing/estree-util-value-to-estree/branch/main/graph/badge.svg
 [codecov]: https://codecov.io/gh/remcohaszing/estree-util-value-to-estree
 [estree]: https://github.com/estree/estree
 [github actions badge]:

@@ -453,4 +453,47 @@ describe('valueToEstree', () => {
       new TypeError('Unsupported value: [object Object]'),
     );
   });
+
+  it('should transform to json on unsupported values w/ `jsonFallback`', () => {
+    class Point {
+      line: number;
+      column: number;
+      constructor(line: number, column: number) {
+        this.line = line;
+        this.column = column;
+      }
+    }
+
+    const point = new Point(2, 3);
+
+    // @ts-expect-error This tests an unsupported value.
+    expect(() => valueToEstree(point)).toThrow(
+      new TypeError('Unsupported value: [object Object]'),
+    );
+
+    // @ts-expect-error This tests an unsupported value.
+    expect(valueToEstree(point, { jsonFallback: true })).toStrictEqual({
+      type: 'ObjectExpression',
+      properties: [
+        {
+          type: 'Property',
+          method: false,
+          shorthand: false,
+          computed: false,
+          kind: 'init',
+          key: { type: 'Literal', value: 'line', raw: '"line"' },
+          value: { type: 'Literal', value: 2, raw: '2' },
+        },
+        {
+          type: 'Property',
+          method: false,
+          shorthand: false,
+          computed: false,
+          kind: 'init',
+          key: { type: 'Literal', value: 'column', raw: '"column"' },
+          value: { type: 'Literal', value: 3, raw: '3' },
+        },
+      ],
+    });
+  });
 });

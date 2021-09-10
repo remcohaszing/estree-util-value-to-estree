@@ -44,13 +44,18 @@ export type Value =
 type ValueSet = Set<Value>;
 type ValueMap = Map<Value, Value>;
 
+export interface Options {
+  jsonFallback?: boolean;
+}
+
 /**
  * Convert a value to an ESTree node
  *
  * @param value - The value to convert
+ * @param options
  * @returns The ESTree node.
  */
-export function valueToEstree(value?: Value): Expression {
+export function valueToEstree(value?: Value, options?: Options): Expression {
   if (value === undefined) {
     return { type: 'Identifier', name: 'undefined' };
   }
@@ -166,5 +171,9 @@ export function valueToEstree(value?: Value): Expression {
       })),
     };
   }
+  if (options && options.jsonFallback) {
+    return valueToEstree(JSON.parse(JSON.stringify(value)));
+  }
+
   throw new TypeError(`Unsupported value: ${String(value)}`);
 }

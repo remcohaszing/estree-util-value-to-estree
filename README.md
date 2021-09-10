@@ -36,8 +36,11 @@ Currently the following types are supported:
 - URL objects
 - URLSearchParams objects
 
+if `options.jsonFallback` is set to `true`, other values are passed through
+`JSON.parse(JSON.stringify(value))`.
+
 ```js
-import { deepEqual } from 'assert';
+import { deepEqual, throws } from 'assert';
 
 import { valueToEstree } from 'estree-util-value-to-estree';
 
@@ -199,6 +202,41 @@ deepEqual(result, {
     },
   ],
 });
+
+class Point {
+  line: number;
+  column: number;
+  constructor(line: number, column: number) {
+    this.line = line;
+    this.column = column;
+  }
+}
+
+throws(() => valueToEstree(new Point(2, 3)));
+
+deepEqual(valueToEstree(new Point(2, 3), {
+  type: 'ObjectExpression',
+  properties: [
+    {
+      type: 'Property',
+      method: false,
+      shorthand: false,
+      computed: false,
+      kind: 'init',
+      key: { type: 'Literal', value: 'line', raw: '"line"' },
+      value: { type: 'Literal', value: 2, raw: '2' },
+    },
+    {
+      type: 'Property',
+      method: false,
+      shorthand: false,
+      computed: false,
+      kind: 'init',
+      key: { type: 'Literal', value: 'column', raw: '"column"' },
+      value: { type: 'Literal', value: 3, raw: '3' },
+    },
+  ],
+}));
 ```
 
 [codecov badge]:

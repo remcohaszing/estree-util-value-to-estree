@@ -467,9 +467,7 @@ describe('valueToEstree', () => {
     const point = new Point(2, 3);
 
     // @ts-expect-error This tests an unsupported value.
-    expect(() => valueToEstree(point)).toThrow(
-      new TypeError('Unsupported value: [object Object]'),
-    );
+    expect(() => valueToEstree(point)).toThrow(new TypeError('Unsupported value: [object Object]'));
 
     // @ts-expect-error This tests an unsupported value.
     expect(valueToEstree(point, { jsonFallback: true })).toStrictEqual({

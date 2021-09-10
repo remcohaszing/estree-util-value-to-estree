@@ -52,7 +52,7 @@ export interface Options {
  * Convert a value to an ESTree node
  *
  * @param value - The value to convert
- * @param options
+ * @param options - Additional options to configure the output.
  * @returns The ESTree node.
  */
 export function valueToEstree(value?: Value, options?: Options): Expression {

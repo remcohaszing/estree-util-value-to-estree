@@ -55,7 +55,7 @@ export interface Options {
  * @param options - Additional options to configure the output.
  * @returns The ESTree node.
  */
-export function valueToEstree(value?: Value, options?: Options): Expression {
+export function valueToEstree(value?: unknown, options: Options = {}): Expression {
   if (value === undefined) {
     return { type: 'Identifier', name: 'undefined' };
   }

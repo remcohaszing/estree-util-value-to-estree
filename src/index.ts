@@ -45,7 +45,7 @@ type ValueSet = Set<Value>;
 type ValueMap = Map<Value, Value>;
 
 export interface Options {
-  jsonFallback?: boolean;
+  instanceAsObject?: boolean;
 }
 
 /**
@@ -157,9 +157,10 @@ export function valueToEstree(value?: unknown, options: Options = {}): Expressio
       arguments: [valueToEstree(String(value))],
     };
   }
-  if (isPlainObject(value)) {
+  if (options.instanceAsObject || isPlainObject(value)) {
     return {
       type: 'ObjectExpression',
+      // @ts-expect-error: looks like an object.
       properties: Object.entries(value).map(([name, val]) => ({
         type: 'Property',
         method: false,
@@ -170,9 +171,6 @@ export function valueToEstree(value?: unknown, options: Options = {}): Expressio
         value: valueToEstree(val),
       })),
     };
-  }
-  if (options && options.jsonFallback) {
-    return valueToEstree(JSON.parse(JSON.stringify(value)));
   }
 
   throw new TypeError(`Unsupported value: ${String(value)}`);

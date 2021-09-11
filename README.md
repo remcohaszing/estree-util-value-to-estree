@@ -36,8 +36,8 @@ Currently the following types are supported:
 - URL objects
 - URLSearchParams objects
 
-if `options.jsonFallback` is set to `true`, other values are passed through
-`JSON.parse(JSON.stringify(value))`.
+if `options.instanceAsObject` is set to `true`, other objects are turned into
+plain object.
 
 ```js
 import { deepEqual, throws } from 'assert';
@@ -212,9 +212,11 @@ class Point {
   }
 }
 
+// Normally complex objects throw.
 throws(() => valueToEstree(new Point(2, 3)));
 
-deepEqual(valueToEstree(new Point(2, 3), {
+// `instanceAsObject: true` treats them as plain objects.
+deepEqual(valueToEstree(new Point(2, 3), {instanceAsObject: true}), {
   type: 'ObjectExpression',
   properties: [
     {
@@ -236,7 +238,7 @@ deepEqual(valueToEstree(new Point(2, 3), {
       value: { type: 'Literal', value: 3, raw: '3' },
     },
   ],
-}));
+});
 ```
 
 [codecov badge]:

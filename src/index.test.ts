@@ -443,18 +443,16 @@ describe('valueToEstree', () => {
   });
 
   it('should throw for unsupported values', () => {
-    // @ts-expect-error This tests an unsupported value.
     expect(() => valueToEstree(() => null)).toThrow(new TypeError('Unsupported value: () => null'));
     class A {
       a = '';
     }
-    // @ts-expect-error This tests an unsupported value.
     expect(() => valueToEstree(new A())).toThrow(
       new TypeError('Unsupported value: [object Object]'),
     );
   });
 
-  it('should transform to json on unsupported values w/ `jsonFallback`', () => {
+  it('should transform to json on unsupported values w/ `instanceAsObject`', () => {
     class Point {
       line: number;
       column: number;
@@ -466,11 +464,9 @@ describe('valueToEstree', () => {
 
     const point = new Point(2, 3);
 
-    // @ts-expect-error This tests an unsupported value.
     expect(() => valueToEstree(point)).toThrow(new TypeError('Unsupported value: [object Object]'));
 
-    // @ts-expect-error This tests an unsupported value.
-    expect(valueToEstree(point, { jsonFallback: true })).toStrictEqual({
+    expect(valueToEstree(point, { instanceAsObject: true })).toStrictEqual({
       type: 'ObjectExpression',
       properties: [
         {

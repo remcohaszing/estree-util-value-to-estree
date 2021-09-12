@@ -67,8 +67,6 @@ export function valueToEstree(value?: Value): Expression {
     return { type: 'Literal', value, raw: String(value) };
   }
   if (typeof value === 'bigint') {
-    // @ts-expect-error Bigint isn’t supported by estree types yet.
-    // https://github.com/DefinitelyTyped/DefinitelyTyped/pull/51606
     return value >= 0
       ? { type: 'Literal', value, raw: `${value}n`, bigint: String(value) }
       : { type: 'UnaryExpression', operator: '-', prefix: true, argument: valueToEstree(-value) };

@@ -36,10 +36,9 @@ Currently the following types are supported:
 - URL objects
 - URLSearchParams objects
 
-if `options.instanceAsObject` is set to `true`, other objects are turned into
-plain object.
+if `options.instanceAsObject` is set to `true`, other objects are turned into plain object.
 
-```js
+```ts
 import { deepEqual, throws } from 'assert';
 
 import { valueToEstree } from 'estree-util-value-to-estree';
@@ -216,7 +215,7 @@ class Point {
 throws(() => valueToEstree(new Point(2, 3)));
 
 // `instanceAsObject: true` treats them as plain objects.
-deepEqual(valueToEstree(new Point(2, 3), {instanceAsObject: true}), {
+deepEqual(valueToEstree(new Point(2, 3), { instanceAsObject: true }), {
   type: 'ObjectExpression',
   properties: [
     {

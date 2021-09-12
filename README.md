@@ -240,6 +240,19 @@ deepEqual(valueToEstree(new Point(2, 3), { instanceAsObject: true }), {
 });
 ```
 
+### API
+
+This API exports the function `valueToEstree`.
+
+#### `valueToEstree(value, options?)`
+
+Convert a value to an ESTree node.
+
+##### options
+
+- `instanceAsObject` (boolean, default: `false`) — If true, treat objects that have a prototype as
+  plain objects.
+
 [codecov badge]:
   https://codecov.io/gh/remcohaszing/estree-util-value-to-estree/branch/main/graph/badge.svg
 [codecov]: https://codecov.io/gh/remcohaszing/estree-util-value-to-estree

@@ -9,48 +9,21 @@ declare const URLSearchParams: typeof globalThis extends { URL: infer URLSearchP
   ? URLSearchParamsCtor
   : typeof import('url').URLSearchParams;
 
-/**
- * A value that can be serialized by `estree-util-from-value`.
- */
-export type Value =
-  | BigInt64Array
-  | BigUint64Array
-  | Date
-  | Float32Array
-  | Float64Array
-  | Int8Array
-  | Int16Array
-  | Int32Array
-  | RegExp
-  | Uint8Array
-  | Uint8ClampedArray
-  | Uint16Array
-  | Uint32Array
-  | URL
-  | URLSearchParams
-  | Value[]
-  | ValueMap
-  | ValueSet
-  | bigint
-  | boolean
-  | number
-  | string
-  | symbol
-  // eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style
-  | { [key: string]: Value }
-  | null
-  | undefined;
-
-type ValueSet = Set<Value>;
-type ValueMap = Map<Value, Value>;
+export interface Options {
+  /**
+   * If true, treat objects that have a prototype as plain objects.
+   */
+  instanceAsObject?: boolean;
+}
 
 /**
  * Convert a value to an ESTree node
  *
  * @param value - The value to convert
+ * @param options - Additional options to configure the output.
  * @returns The ESTree node.
  */
-export function valueToEstree(value?: Value): Expression {
+export function valueToEstree(value?: unknown, options: Options = {}): Expression {
   if (value === undefined) {
     return { type: 'Identifier', name: 'undefined' };
   }
@@ -69,12 +42,22 @@ export function valueToEstree(value?: Value): Expression {
   if (typeof value === 'bigint') {
     return value >= 0
       ? { type: 'Literal', value, raw: `${value}n`, bigint: String(value) }
-      : { type: 'UnaryExpression', operator: '-', prefix: true, argument: valueToEstree(-value) };
+      : {
+          type: 'UnaryExpression',
+          operator: '-',
+          prefix: true,
+          argument: valueToEstree(-value, options),
+        };
   }
   if (typeof value === 'number') {
     return value >= 0
       ? { type: 'Literal', value, raw: String(value) }
-      : { type: 'UnaryExpression', operator: '-', prefix: true, argument: valueToEstree(-value) };
+      : {
+          type: 'UnaryExpression',
+          operator: '-',
+          prefix: true,
+          argument: valueToEstree(-value, options),
+        };
   }
   if (typeof value === 'string') {
     return { type: 'Literal', value, raw: JSON.stringify(value) };
@@ -91,7 +74,7 @@ export function valueToEstree(value?: Value): Expression {
           object: { type: 'Identifier', name: 'Symbol' },
           property: { type: 'Identifier', name: 'for' },
         },
-        arguments: [valueToEstree(value.description)],
+        arguments: [valueToEstree(value.description, options)],
       };
     }
     throw new TypeError(`Only global symbols are supported, got: ${String(value)}`);
@@ -99,7 +82,7 @@ export function valueToEstree(value?: Value): Expression {
   if (Array.isArray(value)) {
     const elements: (Expression | null)[] = [];
     for (let i = 0; i < value.length; i += 1) {
-      elements.push(i in value ? valueToEstree(value[i]) : null);
+      elements.push(i in value ? valueToEstree(value[i], options) : null);
     }
     return { type: 'ArrayExpression', elements };
   }
@@ -115,14 +98,14 @@ export function valueToEstree(value?: Value): Expression {
     return {
       type: 'NewExpression',
       callee: { type: 'Identifier', name: 'Date' },
-      arguments: [valueToEstree(value.getTime())],
+      arguments: [valueToEstree(value.getTime(), options)],
     };
   }
   if (value instanceof Map) {
     return {
       type: 'NewExpression',
       callee: { type: 'Identifier', name: 'Map' },
-      arguments: [valueToEstree([...value.entries()])],
+      arguments: [valueToEstree([...value.entries()], options)],
     };
   }
   if (
@@ -142,29 +125,31 @@ export function valueToEstree(value?: Value): Expression {
     return {
       type: 'NewExpression',
       callee: { type: 'Identifier', name: value.constructor.name },
-      arguments: [valueToEstree([...value])],
+      arguments: [valueToEstree([...value], options)],
     };
   }
   if (value instanceof URL || value instanceof URLSearchParams) {
     return {
       type: 'NewExpression',
       callee: { type: 'Identifier', name: value.constructor.name },
-      arguments: [valueToEstree(String(value))],
+      arguments: [valueToEstree(String(value), options)],
     };
   }
-  if (isPlainObject(value)) {
+  if (options.instanceAsObject || isPlainObject(value)) {
     return {
       type: 'ObjectExpression',
+      // @ts-expect-error: looks like an object.
       properties: Object.entries(value).map(([name, val]) => ({
         type: 'Property',
         method: false,
         shorthand: false,
         computed: false,
         kind: 'init',
-        key: valueToEstree(name),
-        value: valueToEstree(val),
+        key: valueToEstree(name, options),
+        value: valueToEstree(val, options),
       })),
     };
   }
+
   throw new TypeError(`Unsupported value: ${String(value)}`);
 }

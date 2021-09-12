@@ -36,8 +36,10 @@ Currently the following types are supported:
 - URL objects
 - URLSearchParams objects
 
-```js
-import { deepEqual } from 'assert';
+if `options.instanceAsObject` is set to `true`, other objects are turned into plain object.
+
+```ts
+import { deepEqual, throws } from 'assert';
 
 import { valueToEstree } from 'estree-util-value-to-estree';
 
@@ -196,6 +198,43 @@ deepEqual(result, {
           },
         ],
       },
+    },
+  ],
+});
+
+class Point {
+  line: number;
+  column: number;
+  constructor(line: number, column: number) {
+    this.line = line;
+    this.column = column;
+  }
+}
+
+// Normally complex objects throw.
+throws(() => valueToEstree(new Point(2, 3)));
+
+// `instanceAsObject: true` treats them as plain objects.
+deepEqual(valueToEstree(new Point(2, 3), { instanceAsObject: true }), {
+  type: 'ObjectExpression',
+  properties: [
+    {
+      type: 'Property',
+      method: false,
+      shorthand: false,
+      computed: false,
+      kind: 'init',
+      key: { type: 'Literal', value: 'line', raw: '"line"' },
+      value: { type: 'Literal', value: 2, raw: '2' },
+    },
+    {
+      type: 'Property',
+      method: false,
+      shorthand: false,
+      computed: false,
+      kind: 'init',
+      key: { type: 'Literal', value: 'column', raw: '"column"' },
+      value: { type: 'Literal', value: 3, raw: '3' },
     },
   ],
 });

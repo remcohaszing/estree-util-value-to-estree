@@ -28,7 +28,7 @@
   ],
   "scripts": {
     "prepack": "tsc --project tsconfig.build.json",
-    "test": "jest"
+    "test": "jest && tsc && eslint . && prettier --check ."
   },
   "devDependencies": {
     "@types/estree": "^0.0.50",

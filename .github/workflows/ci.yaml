@@ -25,10 +25,10 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
-      - name: Test
+      - name: Jest
         run: |
           yarn --frozen-lockfile
-          yarn test --coverage
+          yarn jest --coverage
       - uses: codecov/codecov-action@v1
         if: ${{ matrix.node-version == 14 }}
 

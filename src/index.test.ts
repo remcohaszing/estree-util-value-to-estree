@@ -1,4 +1,4 @@
-import { Value, valueToEstree } from '.';
+import { valueToEstree } from '.';
 
 describe('valueToEstree', () => {
   it('should handle undefined', () => {
@@ -111,7 +111,7 @@ describe('valueToEstree', () => {
   it('should handle maps', () => {
     expect(
       valueToEstree(
-        new Map<Value, Value>([
+        new Map<unknown, unknown>([
           [{}, 42],
           [42, {}],
         ]),

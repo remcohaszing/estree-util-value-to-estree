@@ -9,41 +9,6 @@ declare const URLSearchParams: typeof globalThis extends { URL: infer URLSearchP
   ? URLSearchParamsCtor
   : typeof import('url').URLSearchParams;
 
-/**
- * A value that can be serialized by `estree-util-from-value`.
- */
-export type Value =
-  | BigInt64Array
-  | BigUint64Array
-  | Date
-  | Float32Array
-  | Float64Array
-  | Int8Array
-  | Int16Array
-  | Int32Array
-  | RegExp
-  | Uint8Array
-  | Uint8ClampedArray
-  | Uint16Array
-  | Uint32Array
-  | URL
-  | URLSearchParams
-  | Value[]
-  | ValueMap
-  | ValueSet
-  | bigint
-  | boolean
-  | number
-  | string
-  | symbol
-  // eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style
-  | { [key: string]: Value }
-  | null
-  | undefined;
-
-type ValueSet = Set<Value>;
-type ValueMap = Map<Value, Value>;
-
 export interface Options {
   /**
    * If true, treat objects that have a prototype as plain objects.

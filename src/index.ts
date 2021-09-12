@@ -108,6 +108,20 @@ export function valueToEstree(value?: unknown, options: Options = {}): Expressio
       arguments: [valueToEstree([...value.entries()], options)],
     };
   }
+  if (typeof Buffer !== 'undefined' && Buffer.isBuffer(value)) {
+    return {
+      type: 'CallExpression',
+      optional: false,
+      callee: {
+        type: 'MemberExpression',
+        computed: false,
+        optional: false,
+        object: { type: 'Identifier', name: 'Buffer' },
+        property: { type: 'Identifier', name: 'from' },
+      },
+      arguments: [valueToEstree([...value.values()])],
+    };
+  }
   if (
     value instanceof BigInt64Array ||
     value instanceof BigUint64Array ||

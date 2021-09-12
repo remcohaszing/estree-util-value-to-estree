@@ -143,6 +143,30 @@ describe('valueToEstree', () => {
     });
   });
 
+  it('should handle buffers', () => {
+    expect(valueToEstree(Buffer.from([1, 2, 3]))).toStrictEqual({
+      optional: false,
+      type: 'CallExpression',
+      callee: {
+        computed: false,
+        object: { name: 'Buffer', type: 'Identifier' },
+        optional: false,
+        property: { name: 'from', type: 'Identifier' },
+        type: 'MemberExpression',
+      },
+      arguments: [
+        {
+          elements: [
+            { type: 'Literal', value: 1, raw: '1' },
+            { type: 'Literal', value: 2, raw: '2' },
+            { type: 'Literal', value: 3, raw: '3' },
+          ],
+          type: 'ArrayExpression',
+        },
+      ],
+    });
+  });
+
   it('should handle arrays', () => {
     expect(valueToEstree([1, '2', , undefined])).toStrictEqual({
       type: 'ArrayExpression',

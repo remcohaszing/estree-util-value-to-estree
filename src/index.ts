@@ -74,12 +74,22 @@ export function valueToEstree(value?: unknown, options: Options = {}): Expressio
   if (typeof value === 'bigint') {
     return value >= 0
       ? { type: 'Literal', value, raw: `${value}n`, bigint: String(value) }
-      : { type: 'UnaryExpression', operator: '-', prefix: true, argument: valueToEstree(-value) };
+      : {
+          type: 'UnaryExpression',
+          operator: '-',
+          prefix: true,
+          argument: valueToEstree(-value, options),
+        };
   }
   if (typeof value === 'number') {
     return value >= 0
       ? { type: 'Literal', value, raw: String(value) }
-      : { type: 'UnaryExpression', operator: '-', prefix: true, argument: valueToEstree(-value) };
+      : {
+          type: 'UnaryExpression',
+          operator: '-',
+          prefix: true,
+          argument: valueToEstree(-value, options),
+        };
   }
   if (typeof value === 'string') {
     return { type: 'Literal', value, raw: JSON.stringify(value) };
@@ -96,7 +106,7 @@ export function valueToEstree(value?: unknown, options: Options = {}): Expressio
           object: { type: 'Identifier', name: 'Symbol' },
           property: { type: 'Identifier', name: 'for' },
         },
-        arguments: [valueToEstree(value.description)],
+        arguments: [valueToEstree(value.description, options)],
       };
     }
     throw new TypeError(`Only global symbols are supported, got: ${String(value)}`);
@@ -104,7 +114,7 @@ export function valueToEstree(value?: unknown, options: Options = {}): Expressio
   if (Array.isArray(value)) {
     const elements: (Expression | null)[] = [];
     for (let i = 0; i < value.length; i += 1) {
-      elements.push(i in value ? valueToEstree(value[i]) : null);
+      elements.push(i in value ? valueToEstree(value[i], options) : null);
     }
     return { type: 'ArrayExpression', elements };
   }
@@ -120,14 +130,14 @@ export function valueToEstree(value?: unknown, options: Options = {}): Expressio
     return {
       type: 'NewExpression',
       callee: { type: 'Identifier', name: 'Date' },
-      arguments: [valueToEstree(value.getTime())],
+      arguments: [valueToEstree(value.getTime(), options)],
     };
   }
   if (value instanceof Map) {
     return {
       type: 'NewExpression',
       callee: { type: 'Identifier', name: 'Map' },
-      arguments: [valueToEstree([...value.entries()])],
+      arguments: [valueToEstree([...value.entries()], options)],
     };
   }
   if (
@@ -147,14 +157,14 @@ export function valueToEstree(value?: unknown, options: Options = {}): Expressio
     return {
       type: 'NewExpression',
       callee: { type: 'Identifier', name: value.constructor.name },
-      arguments: [valueToEstree([...value])],
+      arguments: [valueToEstree([...value], options)],
     };
   }
   if (value instanceof URL || value instanceof URLSearchParams) {
     return {
       type: 'NewExpression',
       callee: { type: 'Identifier', name: value.constructor.name },
-      arguments: [valueToEstree(String(value))],
+      arguments: [valueToEstree(String(value), options)],
     };
   }
   if (options.instanceAsObject || isPlainObject(value)) {
@@ -167,8 +177,8 @@ export function valueToEstree(value?: unknown, options: Options = {}): Expressio
         shorthand: false,
         computed: false,
         kind: 'init',
-        key: valueToEstree(name),
-        value: valueToEstree(val),
+        key: valueToEstree(name, options),
+        value: valueToEstree(val, options),
       })),
     };
   }

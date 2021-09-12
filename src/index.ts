@@ -45,6 +45,9 @@ type ValueSet = Set<Value>;
 type ValueMap = Map<Value, Value>;
 
 export interface Options {
+  /**
+   * If true, treat objects that have a prototype as plain objects.
+   */
   instanceAsObject?: boolean;
 }
 

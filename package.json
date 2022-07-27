@@ -30,8 +30,11 @@
     "prepack": "tsc --project tsconfig.build.json",
     "test": "jest && tsc && eslint . && prettier --check ."
   },
-  "devDependencies": {
+  "dependencies": {
     "@types/estree": "^1.0.0",
+    "is-plain-obj": "^3.0.0"
+  },
+  "devDependencies": {
     "@types/jest": "^28.0.0",
     "@typescript-eslint/eslint-plugin": "^5.0.0",
     "eslint": "^8.0.0",
@@ -42,8 +45,5 @@
     "prettier": "^2.0.0",
     "ts-jest": "^28.0.0",
     "typescript": "^4.0.0"
-  },
-  "dependencies": {
-    "is-plain-obj": "^3.0.0"
   }
 }

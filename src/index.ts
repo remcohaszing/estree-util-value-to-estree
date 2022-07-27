@@ -1,14 +1,6 @@
 import { Expression } from 'estree';
 import isPlainObject = require('is-plain-obj');
 
-// https://github.com/DefinitelyTyped/DefinitelyTyped/issues/34960#issuecomment-576906058
-declare const URL: typeof globalThis extends { URL: infer URLCtor }
-  ? URLCtor
-  : typeof import('url').URL;
-declare const URLSearchParams: typeof globalThis extends { URL: infer URLSearchParamsCtor }
-  ? URLSearchParamsCtor
-  : typeof import('url').URLSearchParams;
-
 export interface Options {
   /**
    * If true, treat objects that have a prototype as plain objects.
@@ -19,8 +11,8 @@ export interface Options {
 /**
  * Convert a value to an ESTree node
  *
- * @param value - The value to convert
- * @param options - Additional options to configure the output.
+ * @param value The value to convert
+ * @param options Additional options to configure the output.
  * @returns The ESTree node.
  */
 export function valueToEstree(value?: unknown, options: Options = {}): Expression {

@@ -91,8 +91,8 @@ describe('valueToEstree', () => {
           shorthand: false,
           computed: false,
           kind: 'init',
-          key: { type: 'Literal', value: 'line', raw: '"line"' },
-          value: { type: 'Literal', value: 2, raw: '2' },
+          key: { type: 'Literal', value: 'line' },
+          value: { type: 'Literal', value: 2 },
         },
         {
           type: 'Property',
@@ -100,8 +100,8 @@ describe('valueToEstree', () => {
           shorthand: false,
           computed: false,
           kind: 'init',
-          key: { type: 'Literal', value: 'column', raw: '"column"' },
-          value: { type: 'Literal', value: 3, raw: '3' },
+          key: { type: 'Literal', value: 'column' },
+          value: { type: 'Literal', value: 3 },
         },
       ],
     });

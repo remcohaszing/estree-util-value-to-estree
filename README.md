@@ -66,8 +66,8 @@ deepEqual(result, {
       shorthand: false,
       computed: false,
       kind: 'init',
-      key: { type: 'Literal', value: 'null', raw: '"null"' },
-      value: { type: 'Literal', value: null, raw: 'null' },
+      key: { type: 'Literal', value: 'null' },
+      value: { type: 'Literal', value: null },
     },
     {
       type: 'Property',
@@ -75,7 +75,7 @@ deepEqual(result, {
       shorthand: false,
       computed: false,
       kind: 'init',
-      key: { type: 'Literal', value: 'undefined', raw: '"undefined"' },
+      key: { type: 'Literal', value: 'undefined' },
       value: { type: 'Identifier', name: 'undefined' },
     },
     {
@@ -84,8 +84,8 @@ deepEqual(result, {
       shorthand: false,
       computed: false,
       kind: 'init',
-      key: { type: 'Literal', value: 'string', raw: '"string"' },
-      value: { type: 'Literal', value: 'Hello world!', raw: '"Hello world!"' },
+      key: { type: 'Literal', value: 'string' },
+      value: { type: 'Literal', value: 'Hello world!' },
     },
     {
       type: 'Property',
@@ -93,8 +93,8 @@ deepEqual(result, {
       shorthand: false,
       computed: false,
       kind: 'init',
-      key: { type: 'Literal', value: 'number', raw: '"number"' },
-      value: { type: 'Literal', value: 42, raw: '42' },
+      key: { type: 'Literal', value: 'number' },
+      value: { type: 'Literal', value: 42 },
     },
     {
       type: 'Property',
@@ -102,16 +102,12 @@ deepEqual(result, {
       shorthand: false,
       computed: false,
       kind: 'init',
-      key: {
-        type: 'Literal',
-        value: 'negativeNumber',
-        raw: '"negativeNumber"',
-      },
+      key: { type: 'Literal', value: 'negativeNumber' },
       value: {
         type: 'UnaryExpression',
         operator: '-',
         prefix: true,
-        argument: { type: 'Literal', value: 1337, raw: '1337' },
+        argument: { type: 'Literal', value: 1337 },
       },
     },
     {
@@ -120,7 +116,7 @@ deepEqual(result, {
       shorthand: false,
       computed: false,
       kind: 'init',
-      key: { type: 'Literal', value: 'infinity', raw: '"infinity"' },
+      key: { type: 'Literal', value: 'infinity' },
       value: { type: 'Identifier', name: 'Infinity' },
     },
     {
@@ -129,7 +125,7 @@ deepEqual(result, {
       shorthand: false,
       computed: false,
       kind: 'init',
-      key: { type: 'Literal', value: 'notANumber', raw: '"notANumber"' },
+      key: { type: 'Literal', value: 'notANumber' },
       value: { type: 'Identifier', name: 'NaN' },
     },
     {
@@ -138,11 +134,10 @@ deepEqual(result, {
       shorthand: false,
       computed: false,
       kind: 'init',
-      key: { type: 'Literal', value: 'regex', raw: '"regex"' },
+      key: { type: 'Literal', value: 'regex' },
       value: {
         type: 'Literal',
         value: /\w+/i,
-        raw: '/\\w+/i',
         regex: { pattern: '\\w+', flags: 'i' },
       },
     },
@@ -152,11 +147,11 @@ deepEqual(result, {
       shorthand: false,
       computed: false,
       kind: 'init',
-      key: { type: 'Literal', value: 'date', raw: '"date"' },
+      key: { type: 'Literal', value: 'date' },
       value: {
         type: 'NewExpression',
         callee: { type: 'Identifier', name: 'Date' },
-        arguments: [{ type: 'Literal', value: 0, raw: '0' }],
+        arguments: [{ type: 'Literal', value: 0 }],
       },
     },
     {
@@ -165,16 +160,10 @@ deepEqual(result, {
       shorthand: false,
       computed: false,
       kind: 'init',
-      key: { type: 'Literal', value: 'array', raw: '"array"' },
+      key: { type: 'Literal', value: 'array' },
       value: {
         type: 'ArrayExpression',
-        elements: [
-          {
-            type: 'Literal',
-            value: 'I’m an array item!',
-            raw: '"I’m an array item!"',
-          },
-        ],
+        elements: [{ type: 'Literal', value: 'I’m an array item!' }],
       },
     },
     {
@@ -183,7 +172,7 @@ deepEqual(result, {
       shorthand: false,
       computed: false,
       kind: 'init',
-      key: { type: 'Literal', value: 'object', raw: '"object"' },
+      key: { type: 'Literal', value: 'object' },
       value: {
         type: 'ObjectExpression',
         properties: [
@@ -193,8 +182,8 @@ deepEqual(result, {
             shorthand: false,
             computed: false,
             kind: 'init',
-            key: { type: 'Literal', value: 'nested', raw: '"nested"' },
-            value: { type: 'Literal', value: 'value', raw: '"value"' },
+            key: { type: 'Literal', value: 'nested' },
+            value: { type: 'Literal', value: 'value' },
           },
         ],
       },
@@ -224,8 +213,8 @@ deepEqual(valueToEstree(new Point(2, 3), { instanceAsObject: true }), {
       shorthand: false,
       computed: false,
       kind: 'init',
-      key: { type: 'Literal', value: 'line', raw: '"line"' },
-      value: { type: 'Literal', value: 2, raw: '2' },
+      key: { type: 'Literal', value: 'line' },
+      value: { type: 'Literal', value: 2 },
     },
     {
       type: 'Property',
@@ -233,8 +222,8 @@ deepEqual(valueToEstree(new Point(2, 3), { instanceAsObject: true }), {
       shorthand: false,
       computed: false,
       kind: 'init',
-      key: { type: 'Literal', value: 'column', raw: '"column"' },
-      value: { type: 'Literal', value: 3, raw: '3' },
+      key: { type: 'Literal', value: 'column' },
+      value: { type: 'Literal', value: 3 },
     },
   ],
 });

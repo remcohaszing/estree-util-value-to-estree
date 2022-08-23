@@ -20,7 +20,7 @@ export function valueToEstree(value?: unknown, options: Options = {}): Expressio
     return { type: 'Identifier', name: 'undefined' };
   }
   if (value == null) {
-    return { type: 'Literal', value: null, raw: 'null' };
+    return { type: 'Literal', value: null };
   }
   if (value === Number.POSITIVE_INFINITY) {
     return { type: 'Identifier', name: 'Infinity' };
@@ -29,11 +29,11 @@ export function valueToEstree(value?: unknown, options: Options = {}): Expressio
     return { type: 'Identifier', name: 'NaN' };
   }
   if (typeof value === 'boolean') {
-    return { type: 'Literal', value, raw: String(value) };
+    return { type: 'Literal', value };
   }
   if (typeof value === 'bigint') {
     return value >= 0
-      ? { type: 'Literal', value, raw: `${value}n`, bigint: String(value) }
+      ? { type: 'Literal', value, bigint: String(value) }
       : {
           type: 'UnaryExpression',
           operator: '-',
@@ -43,7 +43,7 @@ export function valueToEstree(value?: unknown, options: Options = {}): Expressio
   }
   if (typeof value === 'number') {
     return value >= 0
-      ? { type: 'Literal', value, raw: String(value) }
+      ? { type: 'Literal', value }
       : {
           type: 'UnaryExpression',
           operator: '-',
@@ -52,7 +52,7 @@ export function valueToEstree(value?: unknown, options: Options = {}): Expressio
         };
   }
   if (typeof value === 'string') {
-    return { type: 'Literal', value, raw: JSON.stringify(value) };
+    return { type: 'Literal', value };
   }
   if (typeof value === 'symbol') {
     if (value.description && value === Symbol.for(value.description)) {
@@ -82,7 +82,6 @@ export function valueToEstree(value?: unknown, options: Options = {}): Expressio
     return {
       type: 'Literal',
       value,
-      raw: String(value),
       regex: { pattern: value.source, flags: value.flags },
     };
   }

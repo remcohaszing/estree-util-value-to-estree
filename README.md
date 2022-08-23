@@ -1,9 +1,11 @@
 # estree-util-value-to-estree
 
-[![github actions][github actions badge]][github actions] [![codecov][codecov badge]][codecov]
-[![npm][npm badge]][npm] [![prettier][prettier badge]][prettier] [![jest][jest badge]][jest]
+[![github actions](https://github.com/remcohaszing/estree-util-value-to-estree/actions/workflows/ci.yaml/badge.svg)](https://github.com/remcohaszing/estree-util-value-to-estree/actions/workflows/ci.yaml)
+[![codecov](https://codecov.io/gh/remcohaszing/estree-util-value-to-estree/branch/main/graph/badge.svg)](https://codecov.io/gh/remcohaszing/estree-util-value-to-estree)
+[![npm](https://img.shields.io/npm/v/estree-util-value-to-estree)](https://www.npmjs.com/package/estree-util-value-to-estree)
+[![prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://prettier.io)
 
-> Convert a JavaScript value to an [estree][] expression
+Convert a JavaScript value to an [estree](https://github.com/estree/estree) expression
 
 ## Installation
 
@@ -13,8 +15,8 @@ npm install estree-util-value-to-estree
 
 ## Usage
 
-This package converts a JavaScript value to an [estree][] for values that can be constructed without
-the need for a context.
+This package converts a JavaScript value to an [estree](https://github.com/estree/estree) for values
+that can be constructed without the need for a context.
 
 Currently the following types are supported:
 
@@ -242,17 +244,6 @@ Convert a value to an ESTree node.
 - `instanceAsObject` (boolean, default: `false`) — If true, treat objects that have a prototype as
   plain objects.
 
-[codecov badge]:
-  https://codecov.io/gh/remcohaszing/estree-util-value-to-estree/branch/main/graph/badge.svg
-[codecov]: https://codecov.io/gh/remcohaszing/estree-util-value-to-estree
-[estree]: https://github.com/estree/estree
-[github actions badge]:
-  https://github.com/remcohaszing/estree-util-value-to-estree/actions/workflows/ci.yaml/badge.svg
-[github actions]:
-  https://github.com/remcohaszing/estree-util-value-to-estree/actions/workflows/ci.yaml
-[jest badge]: https://jestjs.io/img/jest-badge.svg
-[jest]: https://jestjs.io
-[npm badge]: https://img.shields.io/npm/v/estree-util-value-to-estree
-[npm]: https://www.npmjs.com/package/estree-util-value-to-estree
-[prettier badge]: https://img.shields.io/badge/code_style-prettier-ff69b4.svg
-[prettier]: https://prettier.io
+## License
+
+[MIT](LICENSE.md) © [Remco Haszing](https://github.com/remcohaszing)

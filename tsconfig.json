@@ -2,10 +2,10 @@
   "compilerOptions": {
     "declaration": true,
     "lib": ["es2020", "dom"],
-    "module": "commonjs",
+    "module": "esnext",
+    "moduleResolution": "node",
     "noEmit": true,
     "noImplicitAny": true,
-    "rootDir": "src",
     "strict": true,
     "target": "es2020"
   }

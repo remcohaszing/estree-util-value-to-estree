@@ -1,5 +1,5 @@
 import { Expression } from 'estree';
-import isPlainObject = require('is-plain-obj');
+import isPlainObject from 'is-plain-obj';
 
 export interface Options {
   /**

@@ -1,6 +1,3 @@
 root: true
 extends:
   - remcohaszing
-  - remcohaszing/jest
-rules:
-  '@typescript-eslint/no-require-imports': off

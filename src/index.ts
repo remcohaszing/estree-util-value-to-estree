@@ -92,13 +92,6 @@ export function valueToEstree(value?: unknown, options: Options = {}): Expressio
       arguments: [valueToEstree(value.getTime(), options)],
     };
   }
-  if (value instanceof Map) {
-    return {
-      type: 'NewExpression',
-      callee: { type: 'Identifier', name: 'Map' },
-      arguments: [valueToEstree([...value.entries()], options)],
-    };
-  }
   if (typeof Buffer !== 'undefined' && Buffer.isBuffer(value)) {
     return {
       type: 'CallExpression',
@@ -121,6 +114,7 @@ export function valueToEstree(value?: unknown, options: Options = {}): Expressio
     value instanceof Int8Array ||
     value instanceof Int16Array ||
     value instanceof Int32Array ||
+    value instanceof Map ||
     value instanceof Set ||
     value instanceof Uint8Array ||
     value instanceof Uint8ClampedArray ||

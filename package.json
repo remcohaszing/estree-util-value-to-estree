@@ -37,6 +37,7 @@
   "devDependencies": {
     "@types/jest": "^28.0.0",
     "@typescript-eslint/eslint-plugin": "^5.0.0",
+    "astring": "^1.0.0",
     "eslint": "^8.0.0",
     "eslint-config-remcohaszing": "^5.0.0",
     "eslint-plugin-jest": "^26.0.0",

@@ -1,469 +1,61 @@
+import { generate } from 'astring';
+
 import { valueToEstree } from '.';
 
+const tests = [
+  'undefined',
+  'null',
+  'Infinity',
+  '-Infinity',
+  'true',
+  'false',
+  '0',
+  '42',
+  '-666',
+  '1337n',
+  '-1337n',
+  '"Hello"',
+  'NaN',
+  '/\\s+/i',
+  '[1, "2", , undefined]',
+  `{
+  "number": 1,
+  "string": "Hello",
+  "nothing": null
+}`,
+  'new BigInt64Array([1n, 2n, 3n])',
+  'new BigUint64Array([1n, 2n, 3n])',
+  'new Date(1234567890123)',
+  'new Float32Array([1, 2, 3])',
+  'new Float64Array([1, 2, 3])',
+  'new Int16Array([1, 2, 3])',
+  'new Int32Array([1, 2, 3])',
+  'new Int8Array([1, 2, 3])',
+  'new Map([[{}, 42], [42, {}]])',
+  'new Set([42, "not 42"])',
+  'new Uint16Array([1, 2, 3])',
+  'new Uint32Array([1, 2, 3])',
+  'new Uint8Array([1, 2, 3])',
+  'new Uint8ClampedArray([1, 2, 3])',
+  'new URL("https://example.com/")',
+  'new URLSearchParams("everything=awesome")',
+  'Buffer.from([1, 2, 3])',
+  'Symbol.for("global")',
+];
+
 describe('valueToEstree', () => {
-  it('should handle undefined', () => {
-    expect(valueToEstree()).toStrictEqual({ type: 'Identifier', name: 'undefined' });
-  });
-
-  it('should handle null', () => {
-    expect(valueToEstree(null)).toStrictEqual({ type: 'Literal', value: null, raw: 'null' });
-  });
-
-  it('should handle Infinity', () => {
-    expect(valueToEstree(Number.POSITIVE_INFINITY)).toStrictEqual({
-      type: 'Identifier',
-      name: 'Infinity',
-    });
-  });
-
-  it('should handle -Infinity', () => {
-    expect(valueToEstree(Number.NEGATIVE_INFINITY)).toStrictEqual({
-      type: 'UnaryExpression',
-      operator: '-',
-      prefix: true,
-      argument: { type: 'Identifier', name: 'Infinity' },
-    });
-  });
-
-  it('should handle true', () => {
-    expect(valueToEstree(true)).toStrictEqual({ type: 'Literal', value: true, raw: 'true' });
-  });
-
-  it('should handle false', () => {
-    expect(valueToEstree(false)).toStrictEqual({ type: 'Literal', value: false, raw: 'false' });
-  });
-
-  it('should handle 0', () => {
-    expect(valueToEstree(0)).toStrictEqual({ type: 'Literal', value: 0, raw: '0' });
-  });
-
-  it('should handle positive numbers', () => {
-    expect(valueToEstree(42)).toStrictEqual({ type: 'Literal', value: 42, raw: '42' });
-  });
-
-  it('should handle negative numbers', () => {
-    expect(valueToEstree(-666)).toStrictEqual({
-      type: 'UnaryExpression',
-      operator: '-',
-      prefix: true,
-      argument: { type: 'Literal', value: 666, raw: '666' },
-    });
-  });
-
-  it('should handle positive bigints', () => {
-    expect(valueToEstree(1337n)).toStrictEqual({
-      type: 'Literal',
-      value: 1337n,
-      raw: '1337n',
-      bigint: '1337',
-    });
-  });
-
-  it('should handle negative bigints', () => {
-    expect(valueToEstree(-1337n)).toStrictEqual({
-      type: 'UnaryExpression',
-      operator: '-',
-      prefix: true,
-      argument: {
-        type: 'Literal',
-        value: 1337n,
-        raw: '1337n',
-        bigint: '1337',
-      },
-    });
-  });
-
-  it('should handle strings', () => {
-    expect(valueToEstree('Hello')).toStrictEqual({
-      type: 'Literal',
-      value: 'Hello',
-      raw: '"Hello"',
-    });
-  });
-
-  it('should handle NaN', () => {
-    expect(valueToEstree(Number.NaN)).toStrictEqual({ type: 'Identifier', name: 'NaN' });
-  });
-
-  it('should handle regular expressions', () => {
-    expect(valueToEstree(/\s+/i)).toStrictEqual({
-      type: 'Literal',
-      value: /\s+/i,
-      raw: '/\\s+/i',
-      regex: { pattern: '\\s+', flags: 'i' },
-    });
-  });
-
-  it('should handle dates', () => {
-    expect(valueToEstree(new Date(1_234_567_890_123))).toStrictEqual({
-      type: 'NewExpression',
-      callee: { type: 'Identifier', name: 'Date' },
-      arguments: [
-        {
-          type: 'Literal',
-          value: 1_234_567_890_123,
-          raw: '1234567890123',
-        },
-      ],
-    });
-  });
-
-  it('should handle maps', () => {
-    expect(
-      valueToEstree(
-        new Map<unknown, unknown>([
-          [{}, 42],
-          [42, {}],
-        ]),
-      ),
-    ).toStrictEqual({
-      type: 'NewExpression',
-      callee: { type: 'Identifier', name: 'Map' },
-      arguments: [
-        {
-          type: 'ArrayExpression',
-          elements: [
-            {
-              type: 'ArrayExpression',
-              elements: [
-                { type: 'ObjectExpression', properties: [] },
-                { type: 'Literal', value: 42, raw: '42' },
-              ],
-            },
-            {
-              type: 'ArrayExpression',
-              elements: [
-                { type: 'Literal', value: 42, raw: '42' },
-                { type: 'ObjectExpression', properties: [] },
-              ],
-            },
-          ],
-        },
-      ],
-    });
-  });
-
-  it('should handle buffers', () => {
-    expect(valueToEstree(Buffer.from([1, 2, 3]))).toStrictEqual({
-      optional: false,
-      type: 'CallExpression',
-      callee: {
-        computed: false,
-        object: { name: 'Buffer', type: 'Identifier' },
-        optional: false,
-        property: { name: 'from', type: 'Identifier' },
-        type: 'MemberExpression',
-      },
-      arguments: [
-        {
-          elements: [
-            { type: 'Literal', value: 1, raw: '1' },
-            { type: 'Literal', value: 2, raw: '2' },
-            { type: 'Literal', value: 3, raw: '3' },
-          ],
-          type: 'ArrayExpression',
-        },
-      ],
-    });
-  });
-
-  it('should handle arrays', () => {
-    expect(valueToEstree([1, '2', , undefined])).toStrictEqual({
-      type: 'ArrayExpression',
-      elements: [
-        { type: 'Literal', value: 1, raw: '1' },
-        { type: 'Literal', value: '2', raw: '"2"' },
-        null,
-        { type: 'Identifier', name: 'undefined' },
-      ],
-    });
-  });
-
-  it('should handle BigInt64Array', () => {
-    expect(valueToEstree(new BigInt64Array([1n, 2n, 3n]))).toStrictEqual({
-      type: 'NewExpression',
-      callee: { type: 'Identifier', name: 'BigInt64Array' },
-      arguments: [
-        {
-          type: 'ArrayExpression',
-          elements: [
-            { type: 'Literal', value: 1n, raw: '1n', bigint: '1' },
-            { type: 'Literal', value: 2n, raw: '2n', bigint: '2' },
-            { type: 'Literal', value: 3n, raw: '3n', bigint: '3' },
-          ],
-        },
-      ],
-    });
-  });
-
-  it('should handle BigUint64Array', () => {
-    expect(valueToEstree(new BigUint64Array([1n, 2n, 3n]))).toStrictEqual({
-      type: 'NewExpression',
-      callee: { type: 'Identifier', name: 'BigUint64Array' },
-      arguments: [
-        {
-          type: 'ArrayExpression',
-          elements: [
-            { type: 'Literal', value: 1n, raw: '1n', bigint: '1' },
-            { type: 'Literal', value: 2n, raw: '2n', bigint: '2' },
-            { type: 'Literal', value: 3n, raw: '3n', bigint: '3' },
-          ],
-        },
-      ],
-    });
-  });
-
-  it('should handle Float32Array', () => {
-    expect(valueToEstree(new Float32Array([1, 2, 3]))).toStrictEqual({
-      type: 'NewExpression',
-      callee: { type: 'Identifier', name: 'Float32Array' },
-      arguments: [
-        {
-          type: 'ArrayExpression',
-          elements: [
-            { type: 'Literal', value: 1, raw: '1' },
-            { type: 'Literal', value: 2, raw: '2' },
-            { type: 'Literal', value: 3, raw: '3' },
-          ],
-        },
-      ],
-    });
-  });
-
-  it('should handle Float64Array', () => {
-    expect(valueToEstree(new Float64Array([1, 2, 3]))).toStrictEqual({
-      type: 'NewExpression',
-      callee: { type: 'Identifier', name: 'Float64Array' },
-      arguments: [
-        {
-          type: 'ArrayExpression',
-          elements: [
-            { type: 'Literal', value: 1, raw: '1' },
-            { type: 'Literal', value: 2, raw: '2' },
-            { type: 'Literal', value: 3, raw: '3' },
-          ],
-        },
-      ],
-    });
-  });
-
-  it('should handle Int8Array', () => {
-    expect(valueToEstree(new Int8Array([1, 2, 3]))).toStrictEqual({
-      type: 'NewExpression',
-      callee: { type: 'Identifier', name: 'Int8Array' },
-      arguments: [
-        {
-          type: 'ArrayExpression',
-          elements: [
-            { type: 'Literal', value: 1, raw: '1' },
-            { type: 'Literal', value: 2, raw: '2' },
-            { type: 'Literal', value: 3, raw: '3' },
-          ],
-        },
-      ],
-    });
-  });
-
-  it('should handle Int16Array', () => {
-    expect(valueToEstree(new Int16Array([1, 2, 3]))).toStrictEqual({
-      type: 'NewExpression',
-      callee: { type: 'Identifier', name: 'Int16Array' },
-      arguments: [
-        {
-          type: 'ArrayExpression',
-          elements: [
-            { type: 'Literal', value: 1, raw: '1' },
-            { type: 'Literal', value: 2, raw: '2' },
-            { type: 'Literal', value: 3, raw: '3' },
-          ],
-        },
-      ],
-    });
-  });
-
-  it('should handle Int32Array', () => {
-    expect(valueToEstree(new Int32Array([1, 2, 3]))).toStrictEqual({
-      type: 'NewExpression',
-      callee: { type: 'Identifier', name: 'Int32Array' },
-      arguments: [
-        {
-          type: 'ArrayExpression',
-          elements: [
-            { type: 'Literal', value: 1, raw: '1' },
-            { type: 'Literal', value: 2, raw: '2' },
-            { type: 'Literal', value: 3, raw: '3' },
-          ],
-        },
-      ],
-    });
-  });
-
-  it('should handle sets', () => {
-    expect(valueToEstree(new Set([42, 'not 42']))).toStrictEqual({
-      type: 'NewExpression',
-      callee: { type: 'Identifier', name: 'Set' },
-      arguments: [
-        {
-          type: 'ArrayExpression',
-          elements: [
-            { type: 'Literal', value: 42, raw: '42' },
-            { type: 'Literal', value: 'not 42', raw: '"not 42"' },
-          ],
-        },
-      ],
-    });
-  });
-
-  it('should handle Uint8Arrays', () => {
-    expect(valueToEstree(new Uint8Array([1, 2, 3]))).toStrictEqual({
-      type: 'NewExpression',
-      callee: { type: 'Identifier', name: 'Uint8Array' },
-      arguments: [
-        {
-          type: 'ArrayExpression',
-          elements: [
-            { type: 'Literal', value: 1, raw: '1' },
-            { type: 'Literal', value: 2, raw: '2' },
-            { type: 'Literal', value: 3, raw: '3' },
-          ],
-        },
-      ],
-    });
-  });
-
-  it('should handle Uint8ClampedArray', () => {
-    expect(valueToEstree(new Uint8ClampedArray([1, 2, 3]))).toStrictEqual({
-      type: 'NewExpression',
-      callee: { type: 'Identifier', name: 'Uint8ClampedArray' },
-      arguments: [
-        {
-          type: 'ArrayExpression',
-          elements: [
-            { type: 'Literal', value: 1, raw: '1' },
-            { type: 'Literal', value: 2, raw: '2' },
-            { type: 'Literal', value: 3, raw: '3' },
-          ],
-        },
-      ],
-    });
-  });
-
-  it('should handle Uint16Array', () => {
-    expect(valueToEstree(new Uint16Array([1, 2, 3]))).toStrictEqual({
-      type: 'NewExpression',
-      callee: { type: 'Identifier', name: 'Uint16Array' },
-      arguments: [
-        {
-          type: 'ArrayExpression',
-          elements: [
-            { type: 'Literal', value: 1, raw: '1' },
-            { type: 'Literal', value: 2, raw: '2' },
-            { type: 'Literal', value: 3, raw: '3' },
-          ],
-        },
-      ],
-    });
-  });
-
-  it('should handle Uint32Array', () => {
-    expect(valueToEstree(new Uint32Array([1, 2, 3]))).toStrictEqual({
-      type: 'NewExpression',
-      callee: { type: 'Identifier', name: 'Uint32Array' },
-      arguments: [
-        {
-          type: 'ArrayExpression',
-          elements: [
-            { type: 'Literal', value: 1, raw: '1' },
-            { type: 'Literal', value: 2, raw: '2' },
-            { type: 'Literal', value: 3, raw: '3' },
-          ],
-        },
-      ],
-    });
-  });
-
-  it('should handle global symbols', () => {
-    expect(valueToEstree(Symbol.for('global'))).toStrictEqual({
-      type: 'CallExpression',
-      optional: false,
-      callee: {
-        type: 'MemberExpression',
-        computed: false,
-        optional: false,
-        object: { type: 'Identifier', name: 'Symbol' },
-        property: { type: 'Identifier', name: 'for' },
-      },
-      arguments: [{ type: 'Literal', value: 'global', raw: '"global"' }],
-    });
+  it.each(tests)('%s', (code) => {
+    // eslint-disable-next-line no-new-func
+    const value = new Function(`return ${code}`)();
+    const ast = valueToEstree(value);
+    const result = generate(ast);
+    expect(result).toBe(code);
   });
 
   it('should throw for local symbols', () => {
     expect(() => valueToEstree(Symbol('local'))).toThrow(
       new TypeError('Only global symbols are supported, got: Symbol(local)'),
     );
-  });
-
-  it('should handle URL', () => {
-    expect(valueToEstree(new URL('https://example.com'))).toStrictEqual({
-      type: 'NewExpression',
-      callee: { type: 'Identifier', name: 'URL' },
-      arguments: [
-        {
-          type: 'Literal',
-          value: 'https://example.com/',
-          raw: '"https://example.com/"',
-        },
-      ],
-    });
-  });
-
-  it('should handle URLSearchParams', () => {
-    expect(valueToEstree(new URLSearchParams('everything=awesome'))).toStrictEqual({
-      type: 'NewExpression',
-      callee: { type: 'Identifier', name: 'URLSearchParams' },
-      arguments: [
-        {
-          type: 'Literal',
-          value: 'everything=awesome',
-          raw: '"everything=awesome"',
-        },
-      ],
-    });
-  });
-
-  it('should handle object literals', () => {
-    expect(valueToEstree({ number: 1, string: 'Hello', nothing: null })).toStrictEqual({
-      type: 'ObjectExpression',
-      properties: [
-        {
-          type: 'Property',
-          method: false,
-          shorthand: false,
-          computed: false,
-          kind: 'init',
-          key: { type: 'Literal', value: 'number', raw: '"number"' },
-          value: { type: 'Literal', value: 1, raw: '1' },
-        },
-        {
-          type: 'Property',
-          method: false,
-          shorthand: false,
-          computed: false,
-          kind: 'init',
-          key: { type: 'Literal', value: 'string', raw: '"string"' },
-          value: { type: 'Literal', value: 'Hello', raw: '"Hello"' },
-        },
-        {
-          type: 'Property',
-          method: false,
-          shorthand: false,
-          computed: false,
-          kind: 'init',
-          key: { type: 'Literal', value: 'nothing', raw: '"nothing"' },
-          value: { type: 'Literal', value: null, raw: 'null' },
-        },
-      ],
-    });
   });
 
   it('should throw for unsupported values', () => {

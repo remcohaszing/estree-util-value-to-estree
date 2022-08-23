@@ -78,6 +78,13 @@ export function valueToEstree(value?: unknown, options: Options = {}): Expressio
     }
     return { type: 'ArrayExpression', elements };
   }
+  if (value instanceof Boolean || value instanceof Number || value instanceof String) {
+    return {
+      type: 'NewExpression',
+      callee: { type: 'Identifier', name: value.constructor.name },
+      arguments: [valueToEstree(value.valueOf())],
+    };
+  }
   if (value instanceof RegExp) {
     return {
       type: 'Literal',

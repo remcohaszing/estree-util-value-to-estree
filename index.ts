@@ -110,7 +110,7 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
         object: { type: 'Identifier', name: 'Buffer' },
         property: { type: 'Identifier', name: 'from' },
       },
-      arguments: [valueToEstree([...value.values()])],
+      arguments: [valueToEstree([...value])],
     };
   }
   if (

@@ -144,14 +144,14 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
   if (options.instanceAsObject || isPlainObject(value)) {
     return {
       type: 'ObjectExpression',
-      properties: Object.entries(value).map(([name, val]) => ({
+      properties: Reflect.ownKeys(value).map((key) => ({
         type: 'Property',
         method: false,
         shorthand: false,
-        computed: false,
+        computed: typeof key !== 'string',
         kind: 'init',
-        key: valueToEstree(name, options),
-        value: valueToEstree(val, options),
+        key: valueToEstree(key, options),
+        value: valueToEstree((value as Record<string | symbol, unknown>)[key], options),
       })),
     };
   }

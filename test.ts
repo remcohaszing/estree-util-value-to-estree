@@ -23,7 +23,8 @@ const tests = [
   `{
   "number": 1,
   "string": "Hello",
-  "nothing": null
+  "nothing": null,
+  [Symbol.for("key")]: "value"
 }`,
   'new BigInt64Array([1n, 2n, 3n])',
   'new BigUint64Array([1n, 2n, 3n])',

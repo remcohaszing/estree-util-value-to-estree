@@ -144,7 +144,6 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
   if (options.instanceAsObject || isPlainObject(value)) {
     return {
       type: 'ObjectExpression',
-      // @ts-expect-error: looks like an object.
       properties: Object.entries(value).map(([name, val]) => ({
         type: 'Property',
         method: false,

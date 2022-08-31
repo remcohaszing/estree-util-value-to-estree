@@ -16,19 +16,10 @@ export interface Options {
  * @returns The ESTree node.
  */
 export function valueToEstree(value: unknown, options: Options = {}): Expression {
-  if (value === undefined) {
-    return { type: 'Identifier', name: 'undefined' };
+  if (value === undefined || value === Number.POSITIVE_INFINITY || Number.isNaN(value)) {
+    return { type: 'Identifier', name: String(value) };
   }
-  if (value == null) {
-    return { type: 'Literal', value: null };
-  }
-  if (value === Number.POSITIVE_INFINITY) {
-    return { type: 'Identifier', name: 'Infinity' };
-  }
-  if (Number.isNaN(value)) {
-    return { type: 'Identifier', name: 'NaN' };
-  }
-  if (typeof value === 'boolean') {
+  if (value == null || typeof value === 'string' || typeof value === 'boolean') {
     return { type: 'Literal', value };
   }
   if (typeof value === 'bigint') {
@@ -50,9 +41,6 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
           prefix: true,
           argument: valueToEstree(-value, options),
         };
-  }
-  if (typeof value === 'string') {
-    return { type: 'Literal', value };
   }
   if (typeof value === 'symbol') {
     if (value.description && value === Symbol.for(value.description)) {

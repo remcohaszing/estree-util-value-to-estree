@@ -18,6 +18,7 @@
     "url": "https://github.com/remcohaszing/estree-util-value-to-estree/issues"
   },
   "homepage": "https://github.com/remcohaszing/estree-util-value-to-estree#readme",
+  "funding": "https://github.com/sponsors/remcohaszing",
   "engines": {
     "node": ">=14.0.0"
   },

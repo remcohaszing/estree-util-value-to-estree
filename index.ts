@@ -33,7 +33,7 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
         }
   }
   if (typeof value === 'number') {
-    return value >= 0
+    return value >= 0 && !Object.is(value, -0)
       ? { type: 'Literal', value }
       : {
           type: 'UnaryExpression',

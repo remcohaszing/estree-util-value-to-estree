@@ -11,9 +11,9 @@ Convert a JavaScript value to an [estree](https://github.com/estree/estree) expr
 
 - [Installation](#installation)
 - [Usage](#usage)
-  - [API](#api)
-    - [`valueToEstree(value, options?)`](#valuetoestreevalue-options)
-      - [options](#options)
+- [API](#api)
+  - [`valueToEstree(value, options?)`](#valuetoestreevalue-options)
+    - [options](#options)
 - [License](#license)
 
 ## Installation
@@ -240,15 +240,15 @@ deepEqual(valueToEstree(new Point(2, 3), { instanceAsObject: true }), {
 })
 ```
 
-### API
+## API
 
 This API exports the function `valueToEstree`.
 
-#### `valueToEstree(value, options?)`
+### `valueToEstree(value, options?)`
 
 Convert a value to an ESTree node.
 
-##### options
+#### options
 
 - `instanceAsObject` (boolean, default: `false`) — If true, treat objects that have a prototype as
   plain objects.

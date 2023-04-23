@@ -1,4 +1,4 @@
-import { type Expression } from 'estree'
+import { type Expression, type Property } from 'estree'
 import isPlainObject from 'is-plain-obj'
 
 export interface Options {
@@ -130,9 +130,8 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
     }
   }
   if (options.instanceAsObject || isPlainObject(value)) {
-    return {
-      type: 'ObjectExpression',
-      properties: Reflect.ownKeys(value).map((key) => ({
+    const properties = Reflect.ownKeys(value).map(
+      (key): Property => ({
         type: 'Property',
         method: false,
         shorthand: false,
@@ -140,7 +139,22 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
         kind: 'init',
         key: valueToEstree(key, options),
         value: valueToEstree((value as Record<string | symbol, unknown>)[key], options)
-      }))
+      })
+    )
+    if (Object.getPrototypeOf(value) == null) {
+      properties.unshift({
+        type: 'Property',
+        method: false,
+        shorthand: false,
+        computed: false,
+        kind: 'init',
+        key: { type: 'Identifier', name: '__proto__' },
+        value: { type: 'Literal', value: null }
+      })
+    }
+    return {
+      type: 'ObjectExpression',
+      properties
     }
   }
 

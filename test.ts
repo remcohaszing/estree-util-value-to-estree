@@ -27,6 +27,10 @@ const tests = [
   "nothing": null,
   [Symbol.for("key")]: "value"
 }`,
+  `{
+  __proto__: null,
+  "property": 1
+}`,
   'new BigInt64Array([1n, 2n, 3n])',
   'new BigUint64Array([1n, 2n, 3n])',
   'new Boolean(false)',

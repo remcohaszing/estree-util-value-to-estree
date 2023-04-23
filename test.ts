@@ -1,6 +1,7 @@
+import * as assert from 'node:assert/strict';
+import { test } from 'node:test';
+
 import { generate } from 'astring';
-import { test } from 'uvu';
-import * as assert from 'uvu/assert';
 
 import { valueToEstree } from './index.js';
 
@@ -57,7 +58,7 @@ for (const fixture of tests) {
     const value = new Function(`return ${fixture}`)();
     const ast = valueToEstree(value);
     const result = generate(ast);
-    assert.is(result, fixture);
+    assert.equal(result, fixture);
   });
 }
 
@@ -69,7 +70,7 @@ test('throw for local symbols', () => {
 });
 
 test('throw for unsupported values', () => {
-  assert.throws(() => valueToEstree(() => null), new TypeError('Unsupported value: () => null'));
+  assert.throws(() => valueToEstree(() => null), new TypeError('Unsupported value: ()=>null'));
   class A {
     a = '';
   }
@@ -90,7 +91,7 @@ test('transform to json on unsupported values w/ `instanceAsObject`', () => {
 
   assert.throws(() => valueToEstree(point), new TypeError('Unsupported value: [object Object]'));
 
-  assert.equal(valueToEstree(point, { instanceAsObject: true }), {
+  assert.deepEqual(valueToEstree(point, { instanceAsObject: true }), {
     type: 'ObjectExpression',
     properties: [
       {
@@ -114,5 +115,3 @@ test('transform to json on unsupported values w/ `instanceAsObject`', () => {
     ],
   });
 });
-
-test.run();

@@ -1,11 +1,11 @@
-import { type Expression } from 'estree';
-import isPlainObject from 'is-plain-obj';
+import { type Expression } from 'estree'
+import isPlainObject from 'is-plain-obj'
 
 export interface Options {
   /**
    * If true, treat objects that have a prototype as plain objects.
    */
-  instanceAsObject?: boolean;
+  instanceAsObject?: boolean
 }
 
 /**
@@ -17,10 +17,10 @@ export interface Options {
  */
 export function valueToEstree(value: unknown, options: Options = {}): Expression {
   if (value === undefined || value === Number.POSITIVE_INFINITY || Number.isNaN(value)) {
-    return { type: 'Identifier', name: String(value) };
+    return { type: 'Identifier', name: String(value) }
   }
   if (value == null || typeof value === 'string' || typeof value === 'boolean') {
-    return { type: 'Literal', value };
+    return { type: 'Literal', value }
   }
   if (typeof value === 'bigint') {
     return value >= 0
@@ -29,8 +29,8 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
           type: 'UnaryExpression',
           operator: '-',
           prefix: true,
-          argument: valueToEstree(-value, options),
-        };
+          argument: valueToEstree(-value, options)
+        }
   }
   if (typeof value === 'number') {
     return value >= 0
@@ -39,8 +39,8 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
           type: 'UnaryExpression',
           operator: '-',
           prefix: true,
-          argument: valueToEstree(-value, options),
-        };
+          argument: valueToEstree(-value, options)
+        }
   }
   if (typeof value === 'symbol') {
     if (value.description && value === Symbol.for(value.description)) {
@@ -52,40 +52,40 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
           computed: false,
           optional: false,
           object: { type: 'Identifier', name: 'Symbol' },
-          property: { type: 'Identifier', name: 'for' },
+          property: { type: 'Identifier', name: 'for' }
         },
-        arguments: [valueToEstree(value.description, options)],
-      };
+        arguments: [valueToEstree(value.description, options)]
+      }
     }
-    throw new TypeError(`Only global symbols are supported, got: ${String(value)}`);
+    throw new TypeError(`Only global symbols are supported, got: ${String(value)}`)
   }
   if (Array.isArray(value)) {
-    const elements: (Expression | null)[] = [];
+    const elements: (Expression | null)[] = []
     for (let i = 0; i < value.length; i += 1) {
-      elements.push(i in value ? valueToEstree(value[i], options) : null);
+      elements.push(i in value ? valueToEstree(value[i], options) : null)
     }
-    return { type: 'ArrayExpression', elements };
+    return { type: 'ArrayExpression', elements }
   }
   if (value instanceof Boolean || value instanceof Number || value instanceof String) {
     return {
       type: 'NewExpression',
       callee: { type: 'Identifier', name: value.constructor.name },
-      arguments: [valueToEstree(value.valueOf())],
-    };
+      arguments: [valueToEstree(value.valueOf())]
+    }
   }
   if (value instanceof RegExp) {
     return {
       type: 'Literal',
       value,
-      regex: { pattern: value.source, flags: value.flags },
-    };
+      regex: { pattern: value.source, flags: value.flags }
+    }
   }
   if (value instanceof Date) {
     return {
       type: 'NewExpression',
       callee: { type: 'Identifier', name: 'Date' },
-      arguments: [valueToEstree(value.getTime(), options)],
-    };
+      arguments: [valueToEstree(value.getTime(), options)]
+    }
   }
   if (typeof Buffer !== 'undefined' && Buffer.isBuffer(value)) {
     return {
@@ -96,10 +96,10 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
         computed: false,
         optional: false,
         object: { type: 'Identifier', name: 'Buffer' },
-        property: { type: 'Identifier', name: 'from' },
+        property: { type: 'Identifier', name: 'from' }
       },
-      arguments: [valueToEstree([...value])],
-    };
+      arguments: [valueToEstree([...value])]
+    }
   }
   if (
     value instanceof BigInt64Array ||
@@ -119,15 +119,15 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
     return {
       type: 'NewExpression',
       callee: { type: 'Identifier', name: value.constructor.name },
-      arguments: [valueToEstree([...value], options)],
-    };
+      arguments: [valueToEstree([...value], options)]
+    }
   }
   if (value instanceof URL || value instanceof URLSearchParams) {
     return {
       type: 'NewExpression',
       callee: { type: 'Identifier', name: value.constructor.name },
-      arguments: [valueToEstree(String(value), options)],
-    };
+      arguments: [valueToEstree(String(value), options)]
+    }
   }
   if (options.instanceAsObject || isPlainObject(value)) {
     return {
@@ -139,10 +139,10 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
         computed: typeof key !== 'string',
         kind: 'init',
         key: valueToEstree(key, options),
-        value: valueToEstree((value as Record<string | symbol, unknown>)[key], options),
-      })),
-    };
+        value: valueToEstree((value as Record<string | symbol, unknown>)[key], options)
+      }))
+    }
   }
 
-  throw new TypeError(`Unsupported value: ${String(value)}`);
+  throw new TypeError(`Unsupported value: ${String(value)}`)
 }

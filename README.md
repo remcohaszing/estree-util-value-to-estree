@@ -41,9 +41,9 @@ Currently the following types are supported:
 if `options.instanceAsObject` is set to `true`, other objects are turned into plain object.
 
 ```ts
-import { deepEqual, throws } from 'node:assert/strict';
+import { deepEqual, throws } from 'node:assert/strict'
 
-import { valueToEstree } from 'estree-util-value-to-estree';
+import { valueToEstree } from 'estree-util-value-to-estree'
 
 const result = valueToEstree({
   null: null,
@@ -56,8 +56,8 @@ const result = valueToEstree({
   regex: /\w+/i,
   date: new Date('1970-01-01'),
   array: ['I’m an array item!'],
-  object: { nested: 'value' },
-});
+  object: { nested: 'value' }
+})
 
 deepEqual(result, {
   type: 'ObjectExpression',
@@ -69,7 +69,7 @@ deepEqual(result, {
       computed: false,
       kind: 'init',
       key: { type: 'Literal', value: 'null' },
-      value: { type: 'Literal', value: null },
+      value: { type: 'Literal', value: null }
     },
     {
       type: 'Property',
@@ -78,7 +78,7 @@ deepEqual(result, {
       computed: false,
       kind: 'init',
       key: { type: 'Literal', value: 'undefined' },
-      value: { type: 'Identifier', name: 'undefined' },
+      value: { type: 'Identifier', name: 'undefined' }
     },
     {
       type: 'Property',
@@ -87,7 +87,7 @@ deepEqual(result, {
       computed: false,
       kind: 'init',
       key: { type: 'Literal', value: 'string' },
-      value: { type: 'Literal', value: 'Hello world!' },
+      value: { type: 'Literal', value: 'Hello world!' }
     },
     {
       type: 'Property',
@@ -96,7 +96,7 @@ deepEqual(result, {
       computed: false,
       kind: 'init',
       key: { type: 'Literal', value: 'number' },
-      value: { type: 'Literal', value: 42 },
+      value: { type: 'Literal', value: 42 }
     },
     {
       type: 'Property',
@@ -109,8 +109,8 @@ deepEqual(result, {
         type: 'UnaryExpression',
         operator: '-',
         prefix: true,
-        argument: { type: 'Literal', value: 1337 },
-      },
+        argument: { type: 'Literal', value: 1337 }
+      }
     },
     {
       type: 'Property',
@@ -119,7 +119,7 @@ deepEqual(result, {
       computed: false,
       kind: 'init',
       key: { type: 'Literal', value: 'infinity' },
-      value: { type: 'Identifier', name: 'Infinity' },
+      value: { type: 'Identifier', name: 'Infinity' }
     },
     {
       type: 'Property',
@@ -128,7 +128,7 @@ deepEqual(result, {
       computed: false,
       kind: 'init',
       key: { type: 'Literal', value: 'notANumber' },
-      value: { type: 'Identifier', name: 'NaN' },
+      value: { type: 'Identifier', name: 'NaN' }
     },
     {
       type: 'Property',
@@ -140,8 +140,8 @@ deepEqual(result, {
       value: {
         type: 'Literal',
         value: /\w+/i,
-        regex: { pattern: '\\w+', flags: 'i' },
-      },
+        regex: { pattern: '\\w+', flags: 'i' }
+      }
     },
     {
       type: 'Property',
@@ -153,8 +153,8 @@ deepEqual(result, {
       value: {
         type: 'NewExpression',
         callee: { type: 'Identifier', name: 'Date' },
-        arguments: [{ type: 'Literal', value: 0 }],
-      },
+        arguments: [{ type: 'Literal', value: 0 }]
+      }
     },
     {
       type: 'Property',
@@ -165,8 +165,8 @@ deepEqual(result, {
       key: { type: 'Literal', value: 'array' },
       value: {
         type: 'ArrayExpression',
-        elements: [{ type: 'Literal', value: 'I’m an array item!' }],
-      },
+        elements: [{ type: 'Literal', value: 'I’m an array item!' }]
+      }
     },
     {
       type: 'Property',
@@ -185,25 +185,25 @@ deepEqual(result, {
             computed: false,
             kind: 'init',
             key: { type: 'Literal', value: 'nested' },
-            value: { type: 'Literal', value: 'value' },
-          },
-        ],
-      },
-    },
-  ],
-});
+            value: { type: 'Literal', value: 'value' }
+          }
+        ]
+      }
+    }
+  ]
+})
 
 class Point {
-  line: number;
-  column: number;
+  line: number
+  column: number
   constructor(line: number, column: number) {
-    this.line = line;
-    this.column = column;
+    this.line = line
+    this.column = column
   }
 }
 
 // Normally complex objects throw.
-throws(() => valueToEstree(new Point(2, 3)));
+throws(() => valueToEstree(new Point(2, 3)))
 
 // `instanceAsObject: true` treats them as plain objects.
 deepEqual(valueToEstree(new Point(2, 3), { instanceAsObject: true }), {
@@ -216,7 +216,7 @@ deepEqual(valueToEstree(new Point(2, 3), { instanceAsObject: true }), {
       computed: false,
       kind: 'init',
       key: { type: 'Literal', value: 'line' },
-      value: { type: 'Literal', value: 2 },
+      value: { type: 'Literal', value: 2 }
     },
     {
       type: 'Property',
@@ -225,10 +225,10 @@ deepEqual(valueToEstree(new Point(2, 3), { instanceAsObject: true }), {
       computed: false,
       kind: 'init',
       key: { type: 'Literal', value: 'column' },
-      value: { type: 'Literal', value: 3 },
-    },
-  ],
-});
+      value: { type: 'Literal', value: 3 }
+    }
+  ]
+})
 ```
 
 ### API

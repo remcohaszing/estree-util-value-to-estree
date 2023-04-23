@@ -1,9 +1,9 @@
-import * as assert from 'node:assert/strict';
-import { test } from 'node:test';
+import * as assert from 'node:assert/strict'
+import { test } from 'node:test'
 
-import { generate } from 'astring';
+import { generate } from 'astring'
 
-import { valueToEstree } from './index.js';
+import { valueToEstree } from './index.js'
 
 const tests = [
   'undefined',
@@ -49,47 +49,47 @@ const tests = [
   'new URL("https://example.com/")',
   'new URLSearchParams("everything=awesome")',
   'Buffer.from([1, 2, 3])',
-  'Symbol.for("global")',
-];
+  'Symbol.for("global")'
+]
 
 for (const fixture of tests) {
   test(fixture, () => {
     // eslint-disable-next-line no-new-func
-    const value = new Function(`return ${fixture}`)();
-    const ast = valueToEstree(value);
-    const result = generate(ast);
-    assert.equal(result, fixture);
-  });
+    const value = new Function(`return ${fixture}`)()
+    const ast = valueToEstree(value)
+    const result = generate(ast)
+    assert.equal(result, fixture)
+  })
 }
 
 test('throw for local symbols', () => {
   assert.throws(
     () => valueToEstree(Symbol('local')),
-    new TypeError('Only global symbols are supported, got: Symbol(local)'),
-  );
-});
+    new TypeError('Only global symbols are supported, got: Symbol(local)')
+  )
+})
 
 test('throw for unsupported values', () => {
-  assert.throws(() => valueToEstree(() => null), new TypeError('Unsupported value: ()=>null'));
+  assert.throws(() => valueToEstree(() => null), new TypeError('Unsupported value: ()=>null'))
   class A {
-    a = '';
+    a = ''
   }
-  assert.throws(() => valueToEstree(new A()), new TypeError('Unsupported value: [object Object]'));
-});
+  assert.throws(() => valueToEstree(new A()), new TypeError('Unsupported value: [object Object]'))
+})
 
 test('transform to json on unsupported values w/ `instanceAsObject`', () => {
   class Point {
-    line: number;
-    column: number;
+    line: number
+    column: number
     constructor(line: number, column: number) {
-      this.line = line;
-      this.column = column;
+      this.line = line
+      this.column = column
     }
   }
 
-  const point = new Point(2, 3);
+  const point = new Point(2, 3)
 
-  assert.throws(() => valueToEstree(point), new TypeError('Unsupported value: [object Object]'));
+  assert.throws(() => valueToEstree(point), new TypeError('Unsupported value: [object Object]'))
 
   assert.deepEqual(valueToEstree(point, { instanceAsObject: true }), {
     type: 'ObjectExpression',
@@ -101,7 +101,7 @@ test('transform to json on unsupported values w/ `instanceAsObject`', () => {
         computed: false,
         kind: 'init',
         key: { type: 'Literal', value: 'line' },
-        value: { type: 'Literal', value: 2 },
+        value: { type: 'Literal', value: 2 }
       },
       {
         type: 'Property',
@@ -110,8 +110,8 @@ test('transform to json on unsupported values w/ `instanceAsObject`', () => {
         computed: false,
         kind: 'init',
         key: { type: 'Literal', value: 'column' },
-        value: { type: 'Literal', value: 3 },
-      },
-    ],
-  });
-});
+        value: { type: 'Literal', value: 3 }
+      }
+    ]
+  })
+})

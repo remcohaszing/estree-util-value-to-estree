@@ -1,4 +1,4 @@
-import { Expression } from 'estree';
+import { type Expression } from 'estree';
 import isPlainObject from 'is-plain-obj';
 
 export interface Options {

@@ -41,7 +41,7 @@ Currently the following types are supported:
 if `options.instanceAsObject` is set to `true`, other objects are turned into plain object.
 
 ```ts
-import { deepEqual, throws } from 'node:assert';
+import { deepEqual, throws } from 'node:assert/strict';
 
 import { valueToEstree } from 'estree-util-value-to-estree';
 

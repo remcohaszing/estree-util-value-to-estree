@@ -7,6 +7,15 @@
 
 Convert a JavaScript value to an [estree](https://github.com/estree/estree) expression
 
+## Table of Contents
+
+- [Installation](#installation)
+- [Usage](#usage)
+  - [API](#api)
+    - [`valueToEstree(value, options?)`](#valuetoestreevalue-options)
+      - [options](#options)
+- [License](#license)
+
 ## Installation
 
 ```sh

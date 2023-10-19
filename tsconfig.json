@@ -1,9 +1,7 @@
 {
   "compilerOptions": {
     "declaration": true,
-    "lib": ["es2020", "dom"],
-    "module": "esnext",
-    "moduleResolution": "node",
+    "module": "node16",
     "noEmit": true,
     "noImplicitAny": true,
     "strict": true,

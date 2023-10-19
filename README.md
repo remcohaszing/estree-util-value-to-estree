@@ -14,6 +14,7 @@ Convert a JavaScript value to an [estree](https://github.com/estree/estree) expr
 - [API](#api)
   - [`valueToEstree(value, options?)`](#valuetoestreevalue-options)
     - [options](#options)
+- [Compatibility](#compatibility)
 - [License](#license)
 
 ## Installation
@@ -252,6 +253,10 @@ Convert a value to an ESTree node.
 
 - `instanceAsObject` (boolean, default: `false`) — If true, treat objects that have a prototype as
   plain objects.
+
+## Compatibility
+
+This project is compatible with Node.js 16 or greater.
 
 ## License
 

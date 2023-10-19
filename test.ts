@@ -85,7 +85,9 @@ test('throw for unsupported values', () => {
 test('transform to json on unsupported values w/ `instanceAsObject`', () => {
   class Point {
     line: number
+
     column: number
+
     constructor(line: number, column: number) {
       this.line = line
       this.column = column

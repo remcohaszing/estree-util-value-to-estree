@@ -2,10 +2,10 @@
 
 [![github actions](https://github.com/remcohaszing/estree-util-value-to-estree/actions/workflows/ci.yaml/badge.svg)](https://github.com/remcohaszing/estree-util-value-to-estree/actions/workflows/ci.yaml)
 [![codecov](https://codecov.io/gh/remcohaszing/estree-util-value-to-estree/branch/main/graph/badge.svg)](https://codecov.io/gh/remcohaszing/estree-util-value-to-estree)
-[![npm](https://img.shields.io/npm/v/estree-util-value-to-estree)](https://www.npmjs.com/package/estree-util-value-to-estree)
-[![prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://prettier.io)
+[![npm version](https://img.shields.io/npm/v/estree-util-value-to-estree)](https://www.npmjs.com/package/estree-util-value-to-estree)
+[![npm downloads](https://img.shields.io/npm/dm/estree-util-value-to-estree)](https://www.npmjs.com/package/estree-util-value-to-estree)
 
-Convert a JavaScript value to an [estree](https://github.com/estree/estree) expression
+Convert a JavaScript value to an [ESTree](https://github.com/estree/estree) expression.
 
 ## Table of Contents
 
@@ -25,33 +25,49 @@ npm install estree-util-value-to-estree
 
 ## Usage
 
-This package converts a JavaScript value to an [estree](https://github.com/estree/estree) for values
-that can be constructed without the need for a context.
+This package converts a JavaScript value to an [ESTree](https://github.com/estree/estree) expression
+for values that can be constructed without the need for a context.
 
 Currently the following types are supported:
 
-- arrays
-- bigints
-- booleans
-- dates
-- maps
-- null
-- numbers (including `Infinity`, `NaN`, and negative numbers)
-- objects (plain objects only)
-- regular expressions
-- sets
-- strings
-- symbols (only global symbols)
-- typed arrays (`BigInt64Array`, `BigUint64Array`, `Float32Array`, `Float64Array`, `Int8Array`,
-  `Int16Array`, `Int32Array`, `Uint8Array`, `Uint8ClampedArray`, `Uint16Array`, and`Uint32Array`)
-- undefined
-- URL objects
-- URLSearchParams objects
+- [`bigint`](https://developer.mozilla.org/en-US/docs/Glossary/BigInt)
+- [`boolean`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+- [`null`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/null)
+- [`number`](https://developer.mozilla.org/en-US/docs/Glossary/Number) (Including
+  [Infinity](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Infinity)
+  and [NaN](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/NaN))
+- [`string`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- [Shared `symbol`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol#shared_symbols_in_the_global_symbol_registry)
+- [`object`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)
+- [null-prototype `Object`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object#null-prototype_objects)
+- [`undefined`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Undefined)
+- [`Array`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array)
+- [`BigInt64Array`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt64Array)
+- [`BigUint64Array`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigUint64Array)
+- [`Boolean`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
+- [`Buffer`](https://nodejs.org/api/buffer.html)
+- [`Date`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date)
+- [`Float32Array`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Float32Array)
+- [`Float64Array`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Float64Array)
+- [`Int16Array`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int16Array)
+- [`Int32Array`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int32Array)
+- [`Int8Array`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Int8Array)
+- [`Map`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map)
+- [`Number`](https://developer.mozilla.org/en-US/docs/Glossary/Number)
+- [`RegExp`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp)
+- [`Set`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set)
+- [`String`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)
+- [`Uint16Array`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint16Array)
+- [`Uint32Array`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint32Array)
+- [`Uint8Array`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)
+- [`Uint8ClampedArray`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8ClampedArray)
+- [`URL`](https://developer.mozilla.org/en-US/docs/Web/API/URL)
+- [`URLSearchParams`](https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams)
 
-if `options.instanceAsObject` is set to `true`, other objects are turned into plain object.
+If `options.instanceAsObject` is set to `true`, other objects are turned into plain object.
 
 ```ts
-import { deepEqual, throws } from 'node:assert/strict'
+import assert from 'node:assert/strict'
 
 import { valueToEstree } from 'estree-util-value-to-estree'
 
@@ -69,7 +85,7 @@ const result = valueToEstree({
   object: { nested: 'value' }
 })
 
-deepEqual(result, {
+assert.deepEqual(result, {
   type: 'ObjectExpression',
   properties: [
     {
@@ -215,10 +231,10 @@ class Point {
 }
 
 // Normally complex objects throw.
-throws(() => valueToEstree(new Point(2, 3)))
+assert.throws(() => valueToEstree(new Point(2, 3)))
 
 // `instanceAsObject: true` treats them as plain objects.
-deepEqual(valueToEstree(new Point(2, 3), { instanceAsObject: true }), {
+assert.deepEqual(valueToEstree(new Point(2, 3), { instanceAsObject: true }), {
   type: 'ObjectExpression',
   properties: [
     {
@@ -249,7 +265,7 @@ This API exports the function `valueToEstree`.
 
 ### `valueToEstree(value, options?)`
 
-Convert a value to an ESTree node.
+Convert a value to an [ESTree](https://github.com/estree/estree) node.
 
 #### options
 

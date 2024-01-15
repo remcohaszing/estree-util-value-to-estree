@@ -2,8 +2,7 @@ import * as assert from 'node:assert/strict'
 import { test } from 'node:test'
 
 import { generate } from 'astring'
-
-import { valueToEstree } from './index.js'
+import { valueToEstree } from 'estree-util-value-to-estree'
 
 const tests = [
   'undefined',
@@ -75,7 +74,7 @@ test('throw for local symbols', () => {
 })
 
 test('throw for unsupported values', () => {
-  assert.throws(() => valueToEstree(() => null), new TypeError('Unsupported value: ()=>null'))
+  assert.throws(() => valueToEstree(() => null), new TypeError('Unsupported value: () => null'))
   class A {
     a = ''
   }

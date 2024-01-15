@@ -2,11 +2,13 @@
   "name": "estree-util-value-to-estree",
   "description": "Convert a JavaScript value to an estree expression",
   "version": "3.0.1",
-  "exports": "./index.js",
+  "main": "./dist/estree-util-value-to-estree.js",
+  "exports": "./dist/estree-util-value-to-estree.js",
   "type": "module",
   "files": [
-    "index.js",
-    "index.d.ts"
+    "dist",
+    "src",
+    "!test*"
   ],
   "author": "Remco Haszing <remcohaszing@gmail.com>",
   "license": "MIT",
@@ -22,9 +24,9 @@
     "unist"
   ],
   "scripts": {
-    "prepack": "tsc --noEmit false",
-    "start": "tsx watch test.ts",
-    "test": "c8 tsx test.ts"
+    "prepack": "tsc --build",
+    "pretest": "tsc --build",
+    "test": "c8 node dist/test.js"
   },
   "dependencies": {
     "@types/estree": "^1.0.0",
@@ -39,7 +41,7 @@
     "prettier": "^3.0.0",
     "remark-cli": "11.0.0",
     "remark-preset-remcohaszing": "^2.0.0",
-    "tsx": "^3.0.0",
+    "source-map": "^0.7.0",
     "typescript": "^5.0.0"
   }
 }

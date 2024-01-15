@@ -76,11 +76,16 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
     return { type: 'ArrayExpression', elements }
   }
 
-  if (value instanceof Boolean || value instanceof Number || value instanceof String) {
+  if (
+    value instanceof Boolean ||
+    value instanceof Date ||
+    value instanceof Number ||
+    value instanceof String
+  ) {
     return {
       type: 'NewExpression',
       callee: { type: 'Identifier', name: value.constructor.name },
-      arguments: [valueToEstree(value.valueOf())]
+      arguments: [valueToEstree(value.valueOf(), options)]
     }
   }
 
@@ -89,14 +94,6 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
       type: 'Literal',
       value,
       regex: { pattern: value.source, flags: value.flags }
-    }
-  }
-
-  if (value instanceof Date) {
-    return {
-      type: 'NewExpression',
-      callee: { type: 'Identifier', name: 'Date' },
-      arguments: [valueToEstree(value.getTime(), options)]
     }
   }
 

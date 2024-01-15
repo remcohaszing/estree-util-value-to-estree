@@ -9,19 +9,24 @@ export interface Options {
 }
 
 /**
- * Convert a value to an ESTree node
+ * Convert a value to an ESTree node.
  *
- * @param value The value to convert
- * @param options Additional options to configure the output.
- * @returns The ESTree node.
+ * @param value
+ *   The value to convert.
+ * @param options
+ *   Additional options to configure the output.
+ * @returns
+ *   The ESTree node.
  */
 export function valueToEstree(value: unknown, options: Options = {}): Expression {
   if (value === undefined || value === Number.POSITIVE_INFINITY || Number.isNaN(value)) {
     return { type: 'Identifier', name: String(value) }
   }
+
   if (value == null || typeof value === 'string' || typeof value === 'boolean') {
     return { type: 'Literal', value }
   }
+
   if (typeof value === 'bigint') {
     return value >= 0
       ? { type: 'Literal', value, bigint: String(value) }
@@ -32,6 +37,7 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
           argument: valueToEstree(-value, options)
         }
   }
+
   if (typeof value === 'number') {
     return value >= 0 && !Object.is(value, -0)
       ? { type: 'Literal', value }
@@ -42,6 +48,7 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
           argument: valueToEstree(-value, options)
         }
   }
+
   if (typeof value === 'symbol') {
     if (value.description && value === Symbol.for(value.description)) {
       return {
@@ -57,8 +64,10 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
         arguments: [valueToEstree(value.description, options)]
       }
     }
+
     throw new TypeError(`Only global symbols are supported, got: ${String(value)}`)
   }
+
   if (Array.isArray(value)) {
     const elements: (Expression | null)[] = []
     for (let i = 0; i < value.length; i += 1) {
@@ -66,6 +75,7 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
     }
     return { type: 'ArrayExpression', elements }
   }
+
   if (value instanceof Boolean || value instanceof Number || value instanceof String) {
     return {
       type: 'NewExpression',
@@ -73,6 +83,7 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
       arguments: [valueToEstree(value.valueOf())]
     }
   }
+
   if (value instanceof RegExp) {
     return {
       type: 'Literal',
@@ -80,6 +91,7 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
       regex: { pattern: value.source, flags: value.flags }
     }
   }
+
   if (value instanceof Date) {
     return {
       type: 'NewExpression',
@@ -87,6 +99,7 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
       arguments: [valueToEstree(value.getTime(), options)]
     }
   }
+
   if (typeof Buffer !== 'undefined' && Buffer.isBuffer(value)) {
     return {
       type: 'CallExpression',
@@ -101,6 +114,7 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
       arguments: [valueToEstree([...value])]
     }
   }
+
   if (
     value instanceof BigInt64Array ||
     value instanceof BigUint64Array ||
@@ -122,6 +136,7 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
       arguments: [valueToEstree([...value], options)]
     }
   }
+
   if (value instanceof URL || value instanceof URLSearchParams) {
     return {
       type: 'NewExpression',
@@ -129,6 +144,7 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
       arguments: [valueToEstree(String(value), options)]
     }
   }
+
   if (options.instanceAsObject || isPlainObject(value)) {
     const properties = Reflect.ownKeys(value).map(
       (key): Property => ({
@@ -141,6 +157,7 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
         value: valueToEstree((value as Record<string | symbol, unknown>)[key], options)
       })
     )
+
     if (Object.getPrototypeOf(value) == null) {
       properties.unshift({
         type: 'Property',
@@ -152,6 +169,7 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
         value: { type: 'Literal', value: null }
       })
     }
+
     return {
       type: 'ObjectExpression',
       properties

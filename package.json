@@ -26,7 +26,7 @@
   "scripts": {
     "prepack": "tsc --build",
     "pretest": "tsc --build",
-    "test": "c8 node dist/test.js"
+    "test": "c8 node --enable-source-maps dist/test.js"
   },
   "dependencies": {
     "@types/estree": "^1.0.0",

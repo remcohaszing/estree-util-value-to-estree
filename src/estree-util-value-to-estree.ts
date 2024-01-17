@@ -143,17 +143,15 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
   }
 
   if (options.instanceAsObject || isPlainObject(value)) {
-    const properties = Reflect.ownKeys(value).map(
-      (key): Property => ({
-        type: 'Property',
-        method: false,
-        shorthand: false,
-        computed: typeof key !== 'string',
-        kind: 'init',
-        key: valueToEstree(key, options),
-        value: valueToEstree((value as Record<string | symbol, unknown>)[key], options)
-      })
-    )
+    const properties = Reflect.ownKeys(value).map<Property>((key) => ({
+      type: 'Property',
+      method: false,
+      shorthand: false,
+      computed: typeof key !== 'string',
+      kind: 'init',
+      key: valueToEstree(key, options),
+      value: valueToEstree((value as Record<string | symbol, unknown>)[key], options)
+    }))
 
     if (Object.getPrototypeOf(value) == null) {
       properties.unshift({

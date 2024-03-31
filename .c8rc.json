@@ -1,5 +1,5 @@
 {
   "100": true,
-  "exclude": ["**/test.*"],
+  "exclude": ["**/test.*", "**/fixtures/**"],
   "reporter": ["html", "lcov", "text"]
 }

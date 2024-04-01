@@ -271,6 +271,9 @@ Convert a value to an [ESTree](https://github.com/estree/estree) node.
 
 - `instanceAsObject` (boolean, default: `false`) — If true, treat objects that have a prototype as
   plain objects.
+- `preserveReferences` (boolean, default: `false`) — If true, preserve references to the same object
+  found within the input. This also allows to serialize recursive structures. If needed, the
+  resulting expression will be an iife.
 
 ## Compatibility
 

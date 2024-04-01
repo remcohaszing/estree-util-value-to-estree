@@ -1,9 +1,15 @@
 // Used as input
 // { preserveReferences: true }
-export default new Int32Array([1, 2, 3])
+export default (() => {
+  const var0 = {
+    name: 'recursive'
+  }
+  var0['resursive'] = var0
+  return var0
+})()
 
 // -------------------------------------------------------------------------------------------------
 
 // Default output
 // { preserveReferences: false }
-const withoutPreserveReferences = new Int32Array([1, 2, 3])
+// Recursive references are not supported witout preserveReferences

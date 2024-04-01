@@ -1,9 +1,14 @@
 // Used as input
 // { preserveReferences: true }
 export default (() => {
-  const var0 = new Set()
-  var0.add(42)
-  var0.add('not 42')
+  const var0 = {
+      name: 'var0'
+    },
+    var1 = {
+      name: 'var1'
+    }
+  var1['var0'] = var0
+  var0['var1'] = var1
   return var0
 })()
 
@@ -11,4 +16,4 @@ export default (() => {
 
 // Default output
 // { preserveReferences: false }
-const withoutPreserveReferences = new Set([42, 'not 42'])
+// Recursive references are not supported witout preserveReferences

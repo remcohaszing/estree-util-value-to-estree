@@ -5,14 +5,30 @@ import { generate } from 'astring'
 import { valueToEstree } from 'estree-util-value-to-estree'
 import { testFixturesDirectory } from 'snapshot-fixtures'
 
-testFixturesDirectory({
+testFixturesDirectory<{ recursive?: boolean }>({
   directory: new URL('../fixtures', import.meta.url),
   prettier: true,
   tests: {
     async 'input.js'(input) {
       const { default: value } = await import(input.path)
-      const ast = valueToEstree(value)
-      return `export default ${generate(ast)}`
+      const withPreserveReferences = generate(valueToEstree(value, { preserveReferences: true }))
+      let withoutPreserveReferences: string
+      try {
+        withoutPreserveReferences = `const withoutPreserveReferences = ${generate(valueToEstree(value))}`
+      } catch {
+        withoutPreserveReferences =
+          '// Recursive references are not supported witout preserveReferences'
+      }
+      return `
+        // Used as input
+        // { preserveReferences: true }
+        export default ${withPreserveReferences}
+
+        // -------------------------------------------------------------------------------------------------
+
+        // Default output
+        // { preserveReferences: false }
+        ${withoutPreserveReferences}`
     }
   }
 })

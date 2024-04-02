@@ -8,11 +8,22 @@ import {
 } from 'estree'
 import isPlainObject from 'is-plain-obj'
 
-type Define = (value: unknown, init: Expression) => Expression
+interface Context extends Options {
+  /**
+   * Add a statement to the context to be invoked later.
+   */
+  addStatement: (statement: Statement) => undefined
 
-type Refer = (value: unknown) => Identifier | undefined
+  /**
+   * Define a value as a variable.
+   */
+  define: (value: unknown, init: Expression) => Expression
 
-type AddStatement = (statement: Statement) => undefined
+  /**
+   * Get a reference to a value.
+   */
+  refer: (value: unknown) => Identifier | undefined
+}
 
 /**
  * Create an estree identifier node for a given name.
@@ -97,24 +108,12 @@ function processNumberArray(numbers: Iterable<bigint | number>): Expression {
  *
  * @param value
  *   The value to process
- * @param addStatement
- *   A callback to register a statement to be invoked later.
- * @param define
- *   A callback to define a value as a variable.
- * @param refer
- *   A callback to refer to a value.
- * @param options
- *   The options passed to `valueToEstree`.
+ * @param context
+ *   The current context.
  * @returns
  *   An estree expression to represent the value.
  */
-function processValue(
-  value: unknown,
-  addStatement: AddStatement,
-  define: Define,
-  refer: Refer,
-  options: Options
-): Expression {
+function processValue(value: unknown, context: Context): Expression {
   if (value === undefined) {
     return identifier(String(value))
   }
@@ -139,21 +138,21 @@ function processValue(
           object: identifier('Symbol'),
           property: identifier('for')
         },
-        arguments: [processValue(value.description, addStatement, define, refer, options)]
+        arguments: [processValue(value.description, context)]
       }
     }
 
     throw new TypeError(`Only global symbols are supported, got: ${String(value)}`)
   }
 
-  const reference = refer(value)
+  const reference = context.refer(value)
   if (reference) {
     return reference
   }
 
   if (Array.isArray(value)) {
     const elements: ArrayExpression['elements'] = Array.from(value, () => null)
-    const definition = define(value, {
+    const definition = context.define(value, {
       type: 'ArrayExpression',
       elements
     })
@@ -163,9 +162,9 @@ function processValue(
         continue
       }
 
-      const expression = processValue(value[index], addStatement, define, refer, options)
+      const expression = processValue(value[index], context)
       if (isIdentifier(definition) && isIdentifier(expression)) {
-        addStatement({
+        context.addStatement({
           type: 'ExpressionStatement',
           expression: {
             type: 'AssignmentExpression',
@@ -175,7 +174,7 @@ function processValue(
               computed: true,
               optional: false,
               object: identifier(definition.name),
-              property: processValue(index, addStatement, define, refer, options)
+              property: processValue(index, context)
             },
             right: expression
           }
@@ -194,15 +193,15 @@ function processValue(
     value instanceof Number ||
     value instanceof String
   ) {
-    return define(value, {
+    return context.define(value, {
       type: 'NewExpression',
       callee: identifier(value.constructor.name),
-      arguments: [processValue(value.valueOf(), addStatement, define, refer, options)]
+      arguments: [processValue(value.valueOf(), context)]
     })
   }
 
   if (value instanceof RegExp) {
-    return define(value, {
+    return context.define(value, {
       type: 'Literal',
       value,
       regex: { pattern: value.source, flags: value.flags }
@@ -210,7 +209,7 @@ function processValue(
   }
 
   if (typeof Buffer !== 'undefined' && Buffer.isBuffer(value)) {
-    return define(value, {
+    return context.define(value, {
       type: 'CallExpression',
       optional: false,
       callee: {
@@ -237,7 +236,7 @@ function processValue(
     value instanceof Uint16Array ||
     value instanceof Uint32Array
   ) {
-    return define(value, {
+    return context.define(value, {
       type: 'NewExpression',
       callee: identifier(value.constructor.name),
       arguments: [processNumberArray(value)]
@@ -246,7 +245,7 @@ function processValue(
 
   if (value instanceof Set) {
     const args: Expression[] = []
-    const definition = define(value, {
+    const definition = context.define(value, {
       type: 'NewExpression',
       callee: identifier('Set'),
       arguments: args
@@ -254,7 +253,7 @@ function processValue(
 
     if (isIdentifier(definition)) {
       for (const val of value) {
-        addStatement({
+        context.addStatement({
           type: 'ExpressionStatement',
           expression: {
             type: 'CallExpression',
@@ -266,12 +265,12 @@ function processValue(
               object: identifier(definition.name),
               property: identifier('add')
             },
-            arguments: [processValue(val, addStatement, define, refer, options)]
+            arguments: [processValue(val, context)]
           }
         })
       }
     } else {
-      args.push(processValue([...value], addStatement, define, refer, options))
+      args.push(processValue([...value], context))
     }
 
     return definition
@@ -279,7 +278,7 @@ function processValue(
 
   if (value instanceof Map) {
     const args: Expression[] = []
-    const definition = define(value, {
+    const definition = context.define(value, {
       type: 'NewExpression',
       callee: identifier('Map'),
       arguments: []
@@ -287,7 +286,7 @@ function processValue(
 
     if (isIdentifier(definition)) {
       for (const [key, val] of value) {
-        addStatement({
+        context.addStatement({
           type: 'ExpressionStatement',
           expression: {
             type: 'CallExpression',
@@ -299,29 +298,26 @@ function processValue(
               object: identifier(definition.name),
               property: identifier('set')
             },
-            arguments: [
-              processValue(key, addStatement, define, refer, options),
-              processValue(val, addStatement, define, refer, options)
-            ]
+            arguments: [processValue(key, context), processValue(val, context)]
           }
         })
       }
     } else {
-      args.push(processValue([...value], addStatement, define, refer, options))
+      args.push(processValue([...value], context))
     }
 
     return definition
   }
 
   if (value instanceof URL || value instanceof URLSearchParams) {
-    return define(value, {
+    return context.define(value, {
       type: 'NewExpression',
       callee: identifier(value.constructor.name),
-      arguments: [processValue(String(value), addStatement, define, refer, options)]
+      arguments: [processValue(String(value), context)]
     })
   }
 
-  if (options.instanceAsObject || isPlainObject(value)) {
+  if (context.instanceAsObject || isPlainObject(value)) {
     const properties: Property[] = []
     if (Object.getPrototypeOf(value) == null) {
       properties.push({
@@ -335,22 +331,19 @@ function processValue(
       })
     }
 
-    const definition = define(value, {
+    const definition = context.define(value, {
       type: 'ObjectExpression',
       properties
     })
 
     for (const key of Reflect.ownKeys(value)) {
-      const keyExpression = processValue(key, addStatement, define, refer, options)
+      const keyExpression = processValue(key, context)
       const valueExpression = processValue(
         (value as Record<string | symbol, unknown>)[key],
-        addStatement,
-        define,
-        refer,
-        options
+        context
       )
       if (isIdentifier(definition) && isIdentifier(valueExpression)) {
-        addStatement({
+        context.addStatement({
           type: 'ExpressionStatement',
           expression: {
             type: 'AssignmentExpression',
@@ -416,45 +409,33 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
   const declarations: VariableDeclarator[] = []
   const identifierNames = new Map<unknown, string>()
 
-  const refer: Refer = (val) => {
-    if (!options.preserveReferences) {
-      return
-    }
+  const result = processValue(value, {
+    ...options,
+    addStatement(statement) {
+      statements.push(statement)
+    },
+    refer(val) {
+      const name = identifierNames.get(val)
+      if (name) {
+        return identifier(name)
+      }
+    },
+    define(val, init) {
+      if (!options.preserveReferences) {
+        return init
+      }
 
-    const name = identifierNames.get(val)
-    if (name) {
-      return identifier(name)
-    }
-  }
-
-  const define: Define = (val, init) => {
-    if (!options.preserveReferences) {
-      return init
-    }
-
-    let name = identifierNames.get(val)
-    if (!name) {
-      name = `var${identifierNames.size}`
+      const name = `var${identifierNames.size}`
       identifierNames.set(val, name)
       declarations.push({
         type: 'VariableDeclarator',
         id: identifier(name),
         init
       })
+
+      return identifier(name)
     }
-
-    return refer(val)!
-  }
-
-  const result = processValue(
-    value,
-    (statement) => {
-      statements.push(statement)
-    },
-    define,
-    refer,
-    options
-  )
+  })
 
   if (statements.length === 0) {
     return declarations[0]?.init ?? result

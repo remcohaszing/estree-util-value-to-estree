@@ -1,5 +1,60 @@
-import { type Expression, type Property } from 'estree'
+import { type Expression, type Identifier, type Property } from 'estree'
 import isPlainObject from 'is-plain-obj'
+
+/**
+ * Create an estree identifier node for a given name.
+ *
+ * @param name
+ *   The name of the identifier.
+ * @returns
+ *   The identifier node.
+ */
+function identifier(name: string): Identifier {
+  return { type: 'Identifier', name }
+}
+
+/**
+ * Turn a number or bigint into an estree expression. This handles positive and negative numbers and
+ * bigints as well as special numbers.
+ *
+ * @param number
+ *   The value to turn into an estree expression.
+ * @returns
+ *   An expression that represents the given value.
+ */
+function processNumber(number: bigint | number): Expression {
+  if (number < 0 || Object.is(number, -0)) {
+    return {
+      type: 'UnaryExpression',
+      operator: '-',
+      prefix: true,
+      argument: processNumber(-number)
+    }
+  }
+
+  if (typeof number === 'bigint') {
+    return { type: 'Literal', value: number, bigint: String(number) }
+  }
+
+  if (number === Number.POSITIVE_INFINITY || Number.isNaN(number)) {
+    return identifier(String(number))
+  }
+
+  return { type: 'Literal', value: number }
+}
+
+/**
+ * Process an array of numbers. This is a shortcut for iterables whose constructor takes an array of
+ * numbers as input.
+ *
+ * @param numbers
+ *   The numbers to add to the array expression.
+ * @returns
+ *   An estree array expression whose elements match the input numbers.
+ */
+function processNumberArray(numbers: Iterable<bigint | number>): Expression {
+  return { type: 'ArrayExpression', elements: Array.from(numbers, processNumber) }
+}
 
 export interface Options {
   /**
@@ -19,34 +74,16 @@ export interface Options {
  *   The ESTree node.
  */
 export function valueToEstree(value: unknown, options: Options = {}): Expression {
-  if (value === undefined || value === Number.POSITIVE_INFINITY || Number.isNaN(value)) {
-    return { type: 'Identifier', name: String(value) }
+  if (value === undefined) {
+    return identifier(String(value))
   }
 
   if (value == null || typeof value === 'string' || typeof value === 'boolean') {
     return { type: 'Literal', value }
   }
 
-  if (typeof value === 'bigint') {
-    return value >= 0
-      ? { type: 'Literal', value, bigint: String(value) }
-      : {
-          type: 'UnaryExpression',
-          operator: '-',
-          prefix: true,
-          argument: valueToEstree(-value, options)
-        }
-  }
-
-  if (typeof value === 'number') {
-    return value >= 0 && !Object.is(value, -0)
-      ? { type: 'Literal', value }
-      : {
-          type: 'UnaryExpression',
-          operator: '-',
-          prefix: true,
-          argument: valueToEstree(-value, options)
-        }
+  if (typeof value === 'bigint' || typeof value === 'number') {
+    return processNumber(value)
   }
 
   if (typeof value === 'symbol') {
@@ -58,8 +95,8 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
           type: 'MemberExpression',
           computed: false,
           optional: false,
-          object: { type: 'Identifier', name: 'Symbol' },
-          property: { type: 'Identifier', name: 'for' }
+          object: identifier('Symbol'),
+          property: identifier('for')
         },
         arguments: [valueToEstree(value.description, options)]
       }
@@ -84,7 +121,7 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
   ) {
     return {
       type: 'NewExpression',
-      callee: { type: 'Identifier', name: value.constructor.name },
+      callee: identifier(value.constructor.name),
       arguments: [valueToEstree(value.valueOf(), options)]
     }
   }
@@ -105,10 +142,10 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
         type: 'MemberExpression',
         computed: false,
         optional: false,
-        object: { type: 'Identifier', name: 'Buffer' },
-        property: { type: 'Identifier', name: 'from' }
+        object: identifier('Buffer'),
+        property: identifier('from')
       },
-      arguments: [valueToEstree([...value])]
+      arguments: [processNumberArray(value)]
     }
   }
 
@@ -120,8 +157,6 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
     value instanceof Int8Array ||
     value instanceof Int16Array ||
     value instanceof Int32Array ||
-    value instanceof Map ||
-    value instanceof Set ||
     value instanceof Uint8Array ||
     value instanceof Uint8ClampedArray ||
     value instanceof Uint16Array ||
@@ -129,7 +164,15 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
   ) {
     return {
       type: 'NewExpression',
-      callee: { type: 'Identifier', name: value.constructor.name },
+      callee: identifier(value.constructor.name),
+      arguments: [processNumberArray(value)]
+    }
+  }
+
+  if (value instanceof Map || value instanceof Set) {
+    return {
+      type: 'NewExpression',
+      callee: identifier(value.constructor.name),
       arguments: [valueToEstree([...value], options)]
     }
   }
@@ -137,7 +180,7 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
   if (value instanceof URL || value instanceof URLSearchParams) {
     return {
       type: 'NewExpression',
-      callee: { type: 'Identifier', name: value.constructor.name },
+      callee: identifier(value.constructor.name),
       arguments: [valueToEstree(String(value), options)]
     }
   }
@@ -160,7 +203,7 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
         shorthand: false,
         computed: false,
         kind: 'init',
-        key: { type: 'Identifier', name: '__proto__' },
+        key: identifier('__proto__'),
         value: { type: 'Literal', value: null }
       })
     }

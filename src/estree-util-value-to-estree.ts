@@ -281,7 +281,7 @@ function processValue(value: unknown, context: Context): Expression {
     const definition = context.define(value, {
       type: 'NewExpression',
       callee: identifier('Map'),
-      arguments: []
+      arguments: args
     })
 
     if (isIdentifier(definition)) {

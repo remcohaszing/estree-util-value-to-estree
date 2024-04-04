@@ -12,4 +12,7 @@ export default (() => {
 
 // Default output
 // { preserveReferences: false }
-const withoutPreserveReferences = new Map()
+const withoutPreserveReferences = new Map([
+  [{}, 42],
+  [42, {}]
+])

@@ -3,7 +3,7 @@ import {
   type Expression,
   type Identifier,
   type Property,
-  type Statement,
+  type SimpleLiteral,
   type VariableDeclarator
 } from 'estree'
 import isPlainObject from 'is-plain-obj'
@@ -21,20 +21,42 @@ function identifier(name: string): Identifier {
 }
 
 /**
- * Check whether an expression is a variable identifier.
+ * Create an estree literal node for a given value.
  *
- * @param expression
- *   The expression to check
+ * @param value
+ *   The value for which to create a literal.
  * @returns
- *   True if the expression identifies a variable, false otherwise.
+ *   The literal node.
  */
-function isIdentifier(expression: Expression): expression is Identifier {
-  return (
-    expression.type === 'Identifier' &&
-    expression.name !== 'undefined' &&
-    expression.name !== 'Infinity' &&
-    expression.name !== 'NaN'
-  )
+function literal(value: SimpleLiteral['value']): SimpleLiteral {
+  return { type: 'Literal', value }
+}
+
+/**
+ * Create an estree call expression on an object member.
+ *
+ * @param object
+ *   The object to call the method on.
+ * @param property
+ *   The name of the method to call.
+ * @param args
+ *   Arguments to pass to the function call
+ * @returns
+ *   The call expression node.
+ */
+function methodCall(object: Expression, property: string, args: Expression[]): Expression {
+  return {
+    type: 'CallExpression',
+    optional: false,
+    callee: {
+      type: 'MemberExpression',
+      computed: false,
+      optional: false,
+      object,
+      property: identifier(property)
+    },
+    arguments: args
+  }
 }
 
 /**
@@ -64,7 +86,7 @@ function processNumber(number: bigint | number): Expression {
     return identifier(String(number))
   }
 
-  return { type: 'Literal', value: number }
+  return literal(number)
 }
 
 /**
@@ -84,6 +106,109 @@ function processNumberArray(numbers: Iterable<bigint | number>): Expression {
   }
 
   return { type: 'ArrayExpression', elements }
+}
+
+/**
+ * Check whether a value can be constructed from its string representation.
+ *
+ * @param value
+ *   The value to check
+ * @returns
+ *   Whether or not the value can be constructed from its string representation.
+ */
+function isStringReconstructable(value: unknown): value is URL | URLSearchParams {
+  return value instanceof URL || value instanceof URLSearchParams
+}
+
+/**
+ * Check whether a value can be constructed from its `valueOf()` result.
+ *
+ * @param value
+ *   The value to check
+ * @returns
+ *   Whether or not the value can be constructed from its `valueOf()` result.
+ */
+// eslint-disable-next-line @typescript-eslint/ban-types
+function isValueReconstructable(value: unknown): value is Boolean | Date | Number | String {
+  return (
+    value instanceof Boolean ||
+    value instanceof Date ||
+    value instanceof Number ||
+    value instanceof String
+  )
+}
+
+/**
+ * Check whether a value is a typed array.
+ *
+ * @param value
+ *   The value to check
+ * @returns
+ *   Whether or not the value is a typed array.
+ */
+function isTypedArray(
+  value: unknown
+): value is
+  | BigInt64Array
+  | BigUint64Array
+  | Float32Array
+  | Float64Array
+  | Int8Array
+  | Int16Array
+  | Int32Array
+  | Uint8Array
+  | Uint8ClampedArray
+  | Uint16Array
+  | Uint32Array {
+  return (
+    value instanceof BigInt64Array ||
+    value instanceof BigUint64Array ||
+    value instanceof Float32Array ||
+    value instanceof Float64Array ||
+    value instanceof Int8Array ||
+    value instanceof Int16Array ||
+    value instanceof Int32Array ||
+    value instanceof Uint8Array ||
+    value instanceof Uint8ClampedArray ||
+    value instanceof Uint16Array ||
+    value instanceof Uint32Array
+  )
+}
+
+interface Context {
+  /**
+   * The number of references to this value.
+   */
+  count: number
+
+  /**
+   * The variable name used to reference the value.
+   */
+  name?: string
+
+  /**
+   * Whether or not this value recursively references itself.
+   */
+  recursive: boolean
+
+  /**
+   * The value this context belongs to.
+   */
+  value: unknown
+}
+
+/**
+ * Compare two value contexts for sorting them based on reference count.
+ *
+ * @param a
+ *   The first context to compare.
+ * @param b
+ *   The second context to compare.
+ * @returns
+ *   The count of context a minus the count of context b.
+ */
+function compareContexts(a: Context, b: Context): number {
+  return a.count - b.count
 }
 
 export interface Options {
@@ -114,51 +239,123 @@ export interface Options {
  *   The ESTree node.
  */
 export function valueToEstree(value: unknown, options: Options = {}): Expression {
-  const statements: Statement[] = []
   const declarations: VariableDeclarator[] = []
-  const identifierNames = new Map<unknown, string>()
+  const stack: unknown[] = []
+  const collectedContexts = new Map<unknown, Context>()
+  const finalizers: Expression[] = []
+  const namedContexts: Context[] = []
+  let finalExpression: Expression | undefined
 
   /**
-   * Define a value as a variable in the current scope.
+   * Analyze a value and collect all reference contexts.
    *
    * @param val
-   *   The value to define.
-   * @param init
-   *   The estree expression used to initialize the value.
-   * @returns
-   *   An expression that can be used to refer to the value.
+   *   The value to analyze.
    */
-  function define(val: unknown, init: Expression): Expression {
-    if (!options.preserveReferences) {
-      return init
+  function analyze(val: unknown): undefined {
+    if (typeof val === 'function') {
+      throw new TypeError(`Unsupported value: ${val}`)
     }
 
-    const name = `var${identifierNames.size}`
-    identifierNames.set(val, name)
-    declarations.push({
-      type: 'VariableDeclarator',
-      id: identifier(name),
-      init
-    })
+    if (typeof val !== 'object') {
+      return
+    }
 
-    return identifier(name)
+    if (val == null) {
+      return
+    }
+
+    const context = collectedContexts.get(val)
+    if (context) {
+      if (options.preserveReferences) {
+        context.count += 1
+      }
+      if (stack.includes(val)) {
+        if (!options.preserveReferences) {
+          throw new Error(`Found recursive value: ${val}`)
+        }
+        const parent = stack.at(-1)!
+        const parentContext = collectedContexts.get(parent)!
+        parentContext.recursive = true
+        context.recursive = true
+      }
+      return
+    }
+
+    collectedContexts.set(val, { count: 1, recursive: false, value: val })
+
+    if (isTypedArray(val)) {
+      return
+    }
+
+    if (isStringReconstructable(val)) {
+      return
+    }
+
+    if (isValueReconstructable(val)) {
+      return
+    }
+
+    if (value instanceof RegExp) {
+      return
+    }
+
+    stack.push(val)
+    if (val instanceof Map) {
+      for (const pair of val) {
+        analyze(pair[0])
+        analyze(pair[1])
+      }
+    } else if (Array.isArray(val) || val instanceof Set) {
+      for (const entry of val) {
+        analyze(entry)
+      }
+    } else if (options.instanceAsObject || isPlainObject(val)) {
+      for (const key of Reflect.ownKeys(val)) {
+        analyze((val as Record<string | symbol, unknown>)[key])
+      }
+    } else {
+      throw new TypeError(`Unsupported value: ${val}`)
+    }
+    stack.pop()
   }
 
   /**
-   * Turn a value into an estree expression.
+   * Add a finalizer. A finalizer is an expression needed to reconstruct a value after its initial
+   * creation.
    *
    * @param val
-   *   The value to process
-   * @returns
-   *   An estree expression to represent the value.
+   *   The value returned by the expression.
+   * @param expression
+   *   The expression used to finalize the reconstruction of a value.
    */
-  function processValue(val: unknown): Expression {
+  function addFinalizer(val: unknown, expression: Expression | undefined): undefined {
+    if (expression) {
+      if (val === value && !finalExpression) {
+        finalExpression = expression
+      } else {
+        finalizers.push(expression)
+      }
+    }
+  }
+
+  /**
+   * Recursively generate the estree expression needed to reconstruct the value.
+   *
+   * @param val
+   *   The value to process.
+   * @param isDeclaration
+   *   Whether or not this is for a variable declaration.
+   * @returns
+   *   The estree expression to reconstruct the value.
+   */
+  function generate(val: unknown, isDeclaration?: boolean): Expression {
     if (val === undefined) {
       return identifier(String(val))
     }
 
     if (val == null || typeof val === 'string' || typeof val === 'boolean') {
-      return { type: 'Literal', value: val }
+      return literal(val)
     }
 
     if (typeof val === 'bigint' || typeof val === 'number') {
@@ -167,268 +364,245 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
 
     if (typeof val === 'symbol') {
       if (val.description && val === Symbol.for(val.description)) {
-        return {
-          type: 'CallExpression',
-          optional: false,
-          callee: {
-            type: 'MemberExpression',
-            computed: false,
-            optional: false,
-            object: identifier('Symbol'),
-            property: identifier('for')
-          },
-          arguments: [processValue(val.description)]
-        }
+        return methodCall(identifier('Symbol'), 'for', [literal(val.description)])
       }
 
       throw new TypeError(`Only global symbols are supported, got: ${String(val)}`)
     }
 
-    const name = identifierNames.get(val)
-    if (name) {
-      return identifier(name)
+    const context = collectedContexts.get(val)
+    if (!isDeclaration && context?.name) {
+      return identifier(context.name)
     }
 
-    if (Array.isArray(val)) {
-      const elements: ArrayExpression['elements'] = Array.from(val, () => null)
-      const definition = define(val, {
-        type: 'ArrayExpression',
-        elements
-      })
-
-      for (let index = 0; index < val.length; index += 1) {
-        if (!(index in val)) {
-          continue
-        }
-
-        const expression = processValue(val[index])
-        if (isIdentifier(definition) && isIdentifier(expression)) {
-          statements.push({
-            type: 'ExpressionStatement',
-            expression: {
-              type: 'AssignmentExpression',
-              operator: '=',
-              left: {
-                type: 'MemberExpression',
-                computed: true,
-                optional: false,
-                object: identifier(definition.name),
-                property: processValue(index)
-              },
-              right: expression
-            }
-          })
-        } else {
-          elements[index] = expression
-        }
-      }
-
-      return definition
-    }
-
-    if (
-      val instanceof Boolean ||
-      val instanceof Date ||
-      val instanceof Number ||
-      val instanceof String
-    ) {
-      return define(val, {
+    if (isValueReconstructable(val)) {
+      return {
         type: 'NewExpression',
         callee: identifier(val.constructor.name),
-        arguments: [processValue(val.valueOf())]
-      })
+        arguments: [generate(val.valueOf())]
+      }
     }
 
     if (val instanceof RegExp) {
-      return define(val, {
+      return {
         type: 'Literal',
         value: val,
         regex: { pattern: val.source, flags: val.flags }
-      })
+      }
     }
 
     if (typeof Buffer !== 'undefined' && Buffer.isBuffer(val)) {
-      return define(val, {
-        type: 'CallExpression',
-        optional: false,
-        callee: {
-          type: 'MemberExpression',
-          computed: false,
-          optional: false,
-          object: identifier('Buffer'),
-          property: identifier('from')
-        },
-        arguments: [processNumberArray(val)]
-      })
+      return methodCall(identifier('Buffer'), 'from', [processNumberArray(val)])
     }
 
-    if (
-      val instanceof BigInt64Array ||
-      val instanceof BigUint64Array ||
-      val instanceof Float32Array ||
-      val instanceof Float64Array ||
-      val instanceof Int8Array ||
-      val instanceof Int16Array ||
-      val instanceof Int32Array ||
-      val instanceof Uint8Array ||
-      val instanceof Uint8ClampedArray ||
-      val instanceof Uint16Array ||
-      val instanceof Uint32Array
-    ) {
-      return define(val, {
+    if (isTypedArray(val)) {
+      return {
         type: 'NewExpression',
         callee: identifier(val.constructor.name),
         arguments: [processNumberArray(val)]
-      })
+      }
+    }
+
+    if (isStringReconstructable(val)) {
+      return {
+        type: 'NewExpression',
+        callee: identifier(val.constructor.name),
+        arguments: [literal(String(val))]
+      }
+    }
+
+    if (Array.isArray(val)) {
+      const elements: (Expression | null)[] = Array.from({ length: val.length })
+
+      for (let index = 0; index < val.length; index += 1) {
+        if (!(index in val)) {
+          elements[index] = null
+          continue
+        }
+
+        const child = val[index]
+        const childContext = collectedContexts.get(child)
+        if (
+          context &&
+          childContext &&
+          namedContexts.indexOf(childContext) >= namedContexts.indexOf(context)
+        ) {
+          addFinalizer(child, {
+            type: 'AssignmentExpression',
+            operator: '=',
+            left: {
+              type: 'MemberExpression',
+              computed: true,
+              optional: false,
+              object: identifier(context.name!),
+              property: literal(index)
+            },
+            right: identifier(childContext.name!)
+          })
+        } else {
+          elements[index] = generate(child)
+        }
+      }
+
+      return {
+        type: 'ArrayExpression',
+        elements
+      }
     }
 
     if (val instanceof Set) {
-      const args: Expression[] = []
-      const definition = define(val, {
-        type: 'NewExpression',
-        callee: identifier('Set'),
-        arguments: args
-      })
+      const elements: Expression[] = []
+      let finalizer: Expression | undefined
 
-      if (isIdentifier(definition)) {
-        for (const entry of val) {
-          statements.push({
-            type: 'ExpressionStatement',
-            expression: {
-              type: 'CallExpression',
-              optional: false,
-              callee: {
-                type: 'MemberExpression',
-                computed: false,
-                optional: false,
-                object: identifier(definition.name),
-                property: identifier('add')
-              },
-              arguments: [processValue(entry)]
-            }
-          })
+      for (const child of val) {
+        if (finalizer) {
+          finalizer = methodCall(finalizer, 'add', [generate(child)])
+        } else {
+          const childContext = collectedContexts.get(child)
+          if (
+            context &&
+            childContext &&
+            namedContexts.indexOf(childContext) >= namedContexts.indexOf(context)
+          ) {
+            finalizer = methodCall(identifier(context.name!), 'add', [generate(child)])
+          } else {
+            elements.push(generate(child))
+          }
         }
-      } else {
-        args.push(processValue([...val]))
       }
 
-      return definition
+      addFinalizer(val, finalizer)
+
+      return {
+        type: 'NewExpression',
+        callee: identifier('Set'),
+        arguments: elements.length ? [{ type: 'ArrayExpression', elements }] : []
+      }
     }
 
     if (val instanceof Map) {
-      const args: Expression[] = []
-      const definition = define(val, {
-        type: 'NewExpression',
-        callee: identifier('Map'),
-        arguments: args
-      })
+      const elements: ArrayExpression[] = []
+      let finalizer: Expression | undefined
 
-      if (isIdentifier(definition)) {
-        for (const pair of val) {
-          statements.push({
-            type: 'ExpressionStatement',
-            expression: {
-              type: 'CallExpression',
-              optional: false,
-              callee: {
-                type: 'MemberExpression',
-                computed: false,
-                optional: false,
-                object: identifier(definition.name),
-                property: identifier('set')
-              },
-              arguments: [processValue(pair[0]), processValue(pair[1])]
-            }
-          })
+      for (const [key, item] of val) {
+        if (finalizer) {
+          finalizer = methodCall(finalizer, 'set', [generate(key), generate(item)])
+        } else {
+          const keyContext = collectedContexts.get(key)
+          const itemContext = collectedContexts.get(item)
+
+          if (
+            context &&
+            ((keyContext && namedContexts.indexOf(keyContext) >= namedContexts.indexOf(context)) ||
+              (itemContext && namedContexts.indexOf(itemContext) >= namedContexts.indexOf(context)))
+          ) {
+            finalizer = methodCall(identifier(context.name!), 'set', [
+              generate(key),
+              generate(item)
+            ])
+          } else {
+            elements.push({
+              type: 'ArrayExpression',
+              elements: [generate(key), generate(item)]
+            })
+          }
         }
-      } else {
-        args.push(processValue([...val]))
       }
 
-      return definition
+      addFinalizer(val, finalizer)
+
+      return {
+        type: 'NewExpression',
+        callee: identifier('Map'),
+        arguments: elements.length ? [{ type: 'ArrayExpression', elements }] : []
+      }
     }
 
-    if (val instanceof URL || val instanceof URLSearchParams) {
-      return define(val, {
-        type: 'NewExpression',
-        callee: identifier(val.constructor.name),
-        arguments: [processValue(String(val))]
+    const properties: Property[] = []
+    if (Object.getPrototypeOf(val) == null) {
+      properties.push({
+        type: 'Property',
+        method: false,
+        shorthand: false,
+        computed: false,
+        kind: 'init',
+        key: identifier('__proto__'),
+        value: literal(null)
       })
     }
 
-    if (options.instanceAsObject || isPlainObject(val)) {
-      const properties: Property[] = []
-      if (Object.getPrototypeOf(val) == null) {
+    const object = val as Record<string | symbol, unknown>
+    for (const key of Reflect.ownKeys(val)) {
+      const computed = typeof key !== 'string'
+      const keyExpression = generate(key)
+      const child = object[key]
+      const childContext = collectedContexts.get(child)
+      if (
+        context &&
+        childContext &&
+        namedContexts.indexOf(childContext) >= namedContexts.indexOf(context)
+      ) {
+        addFinalizer(child, {
+          type: 'AssignmentExpression',
+          operator: '=',
+          left: {
+            type: 'MemberExpression',
+            computed: true,
+            optional: false,
+            object: identifier(context.name!),
+            property: keyExpression
+          },
+          right: generate(child)
+        })
+      } else {
         properties.push({
           type: 'Property',
           method: false,
           shorthand: false,
-          computed: false,
+          computed,
           kind: 'init',
-          key: identifier('__proto__'),
-          value: { type: 'Literal', value: null }
+          key: keyExpression,
+          value: generate(child)
         })
       }
-
-      const definition = define(val, {
-        type: 'ObjectExpression',
-        properties
-      })
-
-      for (const key of Reflect.ownKeys(val)) {
-        const keyExpression = processValue(key)
-        const valueExpression = processValue((val as Record<string | symbol, unknown>)[key])
-        if (isIdentifier(definition) && isIdentifier(valueExpression)) {
-          statements.push({
-            type: 'ExpressionStatement',
-            expression: {
-              type: 'AssignmentExpression',
-              operator: '=',
-              left: {
-                type: 'MemberExpression',
-                computed: true,
-                optional: false,
-                object: identifier(definition.name),
-                property: keyExpression
-              },
-              right: valueExpression
-            }
-          })
-        } else {
-          properties.push({
-            type: 'Property',
-            method: false,
-            shorthand: false,
-            computed: typeof key !== 'string',
-            kind: 'init',
-            key: keyExpression,
-            value: valueExpression
-          })
-        }
-      }
-
-      return definition
     }
 
-    throw new TypeError(`Unsupported value: ${val}`)
+    return {
+      type: 'ObjectExpression',
+      properties
+    }
   }
 
-  const result = processValue(value)
+  analyze(value)
 
-  if (statements.length === 0) {
-    return declarations[0]?.init ?? result
+  const rootContext = collectedContexts.get(value)!
+  for (const [val, context] of collectedContexts) {
+    if (context.recursive || context.count > 1) {
+      // Assign reused or recursive references to a variable.
+      context.name = `var${namedContexts.length}`
+      namedContexts.push(context)
+    } else {
+      // Otherwise don’t treat it as a reference.
+      collectedContexts.delete(val)
+    }
   }
 
-  statements.unshift({
-    type: 'VariableDeclaration',
-    kind: 'const',
-    declarations
-  })
+  if (!namedContexts.length) {
+    return generate(value)
+  }
 
-  statements.push({
-    type: 'ReturnStatement',
-    argument: result
-  })
+  for (const context of namedContexts.sort(compareContexts)) {
+    declarations.push({
+      type: 'VariableDeclarator',
+      id: identifier(context.name!),
+      init: generate(context.value, true)
+    })
+  }
+
+  finalizers.push(
+    finalExpression ||
+      (rootContext.name ? identifier(rootContext.name) : generate(rootContext.value))
+  )
 
   return {
     type: 'CallExpression',
@@ -440,7 +614,20 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
       params: [],
       body: {
         type: 'BlockStatement',
-        body: statements
+        body: [
+          {
+            type: 'VariableDeclaration',
+            kind: 'const',
+            declarations
+          },
+          {
+            type: 'ReturnStatement',
+            argument: {
+              type: 'SequenceExpression',
+              expressions: finalizers
+            }
+          }
+        ]
       }
     }
   }

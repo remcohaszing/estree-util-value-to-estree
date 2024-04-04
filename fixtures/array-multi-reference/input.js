@@ -1,18 +1,20 @@
 // Used as input
 // { preserveReferences: true }
 export default (() => {
-  const var1 = {
-      name: 'var1'
-    },
-    var0 = {
-      name: 'var0',
-      var1: var1
-    }
-  return (var1['var0'] = var0)
+  const var0 = new Date(3)
+  return [1, 'Hello', null, new Date(1), new Date(2), var0, var0]
 })()
 
 // -------------------------------------------------------------------------------------------------
 
 // Default output
 // { preserveReferences: false }
-// Recursive references are not supported witout preserveReferences
+const withoutPreserveReferences = [
+  1,
+  'Hello',
+  null,
+  new Date(1),
+  new Date(2),
+  new Date(3),
+  new Date(3)
+]

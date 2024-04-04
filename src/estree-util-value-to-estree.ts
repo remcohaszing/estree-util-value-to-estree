@@ -8,23 +8,6 @@ import {
 } from 'estree'
 import isPlainObject from 'is-plain-obj'
 
-interface Context extends Options {
-  /**
-   * Add a statement to the context to be invoked later.
-   */
-  addStatement: (statement: Statement) => undefined
-
-  /**
-   * Define a value as a variable.
-   */
-  define: (value: unknown, init: Expression) => Expression
-
-  /**
-   * Get a reference to a value.
-   */
-  refer: (value: unknown) => Identifier | undefined
-}
-
 /**
  * Create an estree identifier node for a given name.
  *
@@ -103,280 +86,6 @@ function processNumberArray(numbers: Iterable<bigint | number>): Expression {
   return { type: 'ArrayExpression', elements }
 }
 
-/**
- * Turn a value into an estree expression.
- *
- * @param value
- *   The value to process
- * @param context
- *   The current context.
- * @returns
- *   An estree expression to represent the value.
- */
-function processValue(value: unknown, context: Context): Expression {
-  if (value === undefined) {
-    return identifier(String(value))
-  }
-
-  if (value == null || typeof value === 'string' || typeof value === 'boolean') {
-    return { type: 'Literal', value }
-  }
-
-  if (typeof value === 'bigint' || typeof value === 'number') {
-    return processNumber(value)
-  }
-
-  if (typeof value === 'symbol') {
-    if (value.description && value === Symbol.for(value.description)) {
-      return {
-        type: 'CallExpression',
-        optional: false,
-        callee: {
-          type: 'MemberExpression',
-          computed: false,
-          optional: false,
-          object: identifier('Symbol'),
-          property: identifier('for')
-        },
-        arguments: [processValue(value.description, context)]
-      }
-    }
-
-    throw new TypeError(`Only global symbols are supported, got: ${String(value)}`)
-  }
-
-  const reference = context.refer(value)
-  if (reference) {
-    return reference
-  }
-
-  if (Array.isArray(value)) {
-    const elements: ArrayExpression['elements'] = Array.from(value, () => null)
-    const definition = context.define(value, {
-      type: 'ArrayExpression',
-      elements
-    })
-
-    for (let index = 0; index < value.length; index += 1) {
-      if (!(index in value)) {
-        continue
-      }
-
-      const expression = processValue(value[index], context)
-      if (isIdentifier(definition) && isIdentifier(expression)) {
-        context.addStatement({
-          type: 'ExpressionStatement',
-          expression: {
-            type: 'AssignmentExpression',
-            operator: '=',
-            left: {
-              type: 'MemberExpression',
-              computed: true,
-              optional: false,
-              object: identifier(definition.name),
-              property: processValue(index, context)
-            },
-            right: expression
-          }
-        })
-      } else {
-        elements[index] = expression
-      }
-    }
-
-    return definition
-  }
-
-  if (
-    value instanceof Boolean ||
-    value instanceof Date ||
-    value instanceof Number ||
-    value instanceof String
-  ) {
-    return context.define(value, {
-      type: 'NewExpression',
-      callee: identifier(value.constructor.name),
-      arguments: [processValue(value.valueOf(), context)]
-    })
-  }
-
-  if (value instanceof RegExp) {
-    return context.define(value, {
-      type: 'Literal',
-      value,
-      regex: { pattern: value.source, flags: value.flags }
-    })
-  }
-
-  if (typeof Buffer !== 'undefined' && Buffer.isBuffer(value)) {
-    return context.define(value, {
-      type: 'CallExpression',
-      optional: false,
-      callee: {
-        type: 'MemberExpression',
-        computed: false,
-        optional: false,
-        object: identifier('Buffer'),
-        property: identifier('from')
-      },
-      arguments: [processNumberArray(value)]
-    })
-  }
-
-  if (
-    value instanceof BigInt64Array ||
-    value instanceof BigUint64Array ||
-    value instanceof Float32Array ||
-    value instanceof Float64Array ||
-    value instanceof Int8Array ||
-    value instanceof Int16Array ||
-    value instanceof Int32Array ||
-    value instanceof Uint8Array ||
-    value instanceof Uint8ClampedArray ||
-    value instanceof Uint16Array ||
-    value instanceof Uint32Array
-  ) {
-    return context.define(value, {
-      type: 'NewExpression',
-      callee: identifier(value.constructor.name),
-      arguments: [processNumberArray(value)]
-    })
-  }
-
-  if (value instanceof Set) {
-    const args: Expression[] = []
-    const definition = context.define(value, {
-      type: 'NewExpression',
-      callee: identifier('Set'),
-      arguments: args
-    })
-
-    if (isIdentifier(definition)) {
-      for (const val of value) {
-        context.addStatement({
-          type: 'ExpressionStatement',
-          expression: {
-            type: 'CallExpression',
-            optional: false,
-            callee: {
-              type: 'MemberExpression',
-              computed: false,
-              optional: false,
-              object: identifier(definition.name),
-              property: identifier('add')
-            },
-            arguments: [processValue(val, context)]
-          }
-        })
-      }
-    } else {
-      args.push(processValue([...value], context))
-    }
-
-    return definition
-  }
-
-  if (value instanceof Map) {
-    const args: Expression[] = []
-    const definition = context.define(value, {
-      type: 'NewExpression',
-      callee: identifier('Map'),
-      arguments: args
-    })
-
-    if (isIdentifier(definition)) {
-      for (const [key, val] of value) {
-        context.addStatement({
-          type: 'ExpressionStatement',
-          expression: {
-            type: 'CallExpression',
-            optional: false,
-            callee: {
-              type: 'MemberExpression',
-              computed: false,
-              optional: false,
-              object: identifier(definition.name),
-              property: identifier('set')
-            },
-            arguments: [processValue(key, context), processValue(val, context)]
-          }
-        })
-      }
-    } else {
-      args.push(processValue([...value], context))
-    }
-
-    return definition
-  }
-
-  if (value instanceof URL || value instanceof URLSearchParams) {
-    return context.define(value, {
-      type: 'NewExpression',
-      callee: identifier(value.constructor.name),
-      arguments: [processValue(String(value), context)]
-    })
-  }
-
-  if (context.instanceAsObject || isPlainObject(value)) {
-    const properties: Property[] = []
-    if (Object.getPrototypeOf(value) == null) {
-      properties.push({
-        type: 'Property',
-        method: false,
-        shorthand: false,
-        computed: false,
-        kind: 'init',
-        key: identifier('__proto__'),
-        value: { type: 'Literal', value: null }
-      })
-    }
-
-    const definition = context.define(value, {
-      type: 'ObjectExpression',
-      properties
-    })
-
-    for (const key of Reflect.ownKeys(value)) {
-      const keyExpression = processValue(key, context)
-      const valueExpression = processValue(
-        (value as Record<string | symbol, unknown>)[key],
-        context
-      )
-      if (isIdentifier(definition) && isIdentifier(valueExpression)) {
-        context.addStatement({
-          type: 'ExpressionStatement',
-          expression: {
-            type: 'AssignmentExpression',
-            operator: '=',
-            left: {
-              type: 'MemberExpression',
-              computed: true,
-              optional: false,
-              object: identifier(definition.name),
-              property: keyExpression
-            },
-            right: valueExpression
-          }
-        })
-      } else {
-        properties.push({
-          type: 'Property',
-          method: false,
-          shorthand: false,
-          computed: typeof key !== 'string',
-          kind: 'init',
-          key: keyExpression,
-          value: valueExpression
-        })
-      }
-    }
-
-    return definition
-  }
-
-  throw new TypeError(`Unsupported value: ${value}`)
-}
-
 export interface Options {
   /**
    * If true, treat objects that have a prototype as plain objects.
@@ -409,33 +118,302 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
   const declarations: VariableDeclarator[] = []
   const identifierNames = new Map<unknown, string>()
 
-  const result = processValue(value, {
-    ...options,
-    addStatement(statement) {
-      statements.push(statement)
-    },
-    refer(val) {
-      const name = identifierNames.get(val)
-      if (name) {
-        return identifier(name)
-      }
-    },
-    define(val, init) {
-      if (!options.preserveReferences) {
-        return init
+  /**
+   * Define a value as a variable in the current scope.
+   *
+   * @param val
+   *   The value to define.
+   * @param init
+   *   The estree expression used to initialize the value.
+   * @returns
+   *   An expression that can be used to refer to the value.
+   */
+  function define(val: unknown, init: Expression): Expression {
+    if (!options.preserveReferences) {
+      return init
+    }
+
+    const name = `var${identifierNames.size}`
+    identifierNames.set(val, name)
+    declarations.push({
+      type: 'VariableDeclarator',
+      id: identifier(name),
+      init
+    })
+
+    return identifier(name)
+  }
+
+  /**
+   * Turn a value into an estree expression.
+   *
+   * @param val
+   *   The value to process
+   * @returns
+   *   An estree expression to represent the value.
+   */
+  function processValue(val: unknown): Expression {
+    if (val === undefined) {
+      return identifier(String(val))
+    }
+
+    if (val == null || typeof val === 'string' || typeof val === 'boolean') {
+      return { type: 'Literal', value: val }
+    }
+
+    if (typeof val === 'bigint' || typeof val === 'number') {
+      return processNumber(val)
+    }
+
+    if (typeof val === 'symbol') {
+      if (val.description && val === Symbol.for(val.description)) {
+        return {
+          type: 'CallExpression',
+          optional: false,
+          callee: {
+            type: 'MemberExpression',
+            computed: false,
+            optional: false,
+            object: identifier('Symbol'),
+            property: identifier('for')
+          },
+          arguments: [processValue(val.description)]
+        }
       }
 
-      const name = `var${identifierNames.size}`
-      identifierNames.set(val, name)
-      declarations.push({
-        type: 'VariableDeclarator',
-        id: identifier(name),
-        init
-      })
+      throw new TypeError(`Only global symbols are supported, got: ${String(val)}`)
+    }
 
+    const name = identifierNames.get(val)
+    if (name) {
       return identifier(name)
     }
-  })
+
+    if (Array.isArray(val)) {
+      const elements: ArrayExpression['elements'] = Array.from(val, () => null)
+      const definition = define(val, {
+        type: 'ArrayExpression',
+        elements
+      })
+
+      for (let index = 0; index < val.length; index += 1) {
+        if (!(index in val)) {
+          continue
+        }
+
+        const expression = processValue(val[index])
+        if (isIdentifier(definition) && isIdentifier(expression)) {
+          statements.push({
+            type: 'ExpressionStatement',
+            expression: {
+              type: 'AssignmentExpression',
+              operator: '=',
+              left: {
+                type: 'MemberExpression',
+                computed: true,
+                optional: false,
+                object: identifier(definition.name),
+                property: processValue(index)
+              },
+              right: expression
+            }
+          })
+        } else {
+          elements[index] = expression
+        }
+      }
+
+      return definition
+    }
+
+    if (
+      val instanceof Boolean ||
+      val instanceof Date ||
+      val instanceof Number ||
+      val instanceof String
+    ) {
+      return define(val, {
+        type: 'NewExpression',
+        callee: identifier(val.constructor.name),
+        arguments: [processValue(val.valueOf())]
+      })
+    }
+
+    if (val instanceof RegExp) {
+      return define(val, {
+        type: 'Literal',
+        value: val,
+        regex: { pattern: val.source, flags: val.flags }
+      })
+    }
+
+    if (typeof Buffer !== 'undefined' && Buffer.isBuffer(val)) {
+      return define(val, {
+        type: 'CallExpression',
+        optional: false,
+        callee: {
+          type: 'MemberExpression',
+          computed: false,
+          optional: false,
+          object: identifier('Buffer'),
+          property: identifier('from')
+        },
+        arguments: [processNumberArray(val)]
+      })
+    }
+
+    if (
+      val instanceof BigInt64Array ||
+      val instanceof BigUint64Array ||
+      val instanceof Float32Array ||
+      val instanceof Float64Array ||
+      val instanceof Int8Array ||
+      val instanceof Int16Array ||
+      val instanceof Int32Array ||
+      val instanceof Uint8Array ||
+      val instanceof Uint8ClampedArray ||
+      val instanceof Uint16Array ||
+      val instanceof Uint32Array
+    ) {
+      return define(val, {
+        type: 'NewExpression',
+        callee: identifier(val.constructor.name),
+        arguments: [processNumberArray(val)]
+      })
+    }
+
+    if (val instanceof Set) {
+      const args: Expression[] = []
+      const definition = define(val, {
+        type: 'NewExpression',
+        callee: identifier('Set'),
+        arguments: args
+      })
+
+      if (isIdentifier(definition)) {
+        for (const entry of val) {
+          statements.push({
+            type: 'ExpressionStatement',
+            expression: {
+              type: 'CallExpression',
+              optional: false,
+              callee: {
+                type: 'MemberExpression',
+                computed: false,
+                optional: false,
+                object: identifier(definition.name),
+                property: identifier('add')
+              },
+              arguments: [processValue(entry)]
+            }
+          })
+        }
+      } else {
+        args.push(processValue([...val]))
+      }
+
+      return definition
+    }
+
+    if (val instanceof Map) {
+      const args: Expression[] = []
+      const definition = define(val, {
+        type: 'NewExpression',
+        callee: identifier('Map'),
+        arguments: args
+      })
+
+      if (isIdentifier(definition)) {
+        for (const pair of val) {
+          statements.push({
+            type: 'ExpressionStatement',
+            expression: {
+              type: 'CallExpression',
+              optional: false,
+              callee: {
+                type: 'MemberExpression',
+                computed: false,
+                optional: false,
+                object: identifier(definition.name),
+                property: identifier('set')
+              },
+              arguments: [processValue(pair[0]), processValue(pair[1])]
+            }
+          })
+        }
+      } else {
+        args.push(processValue([...val]))
+      }
+
+      return definition
+    }
+
+    if (val instanceof URL || val instanceof URLSearchParams) {
+      return define(val, {
+        type: 'NewExpression',
+        callee: identifier(val.constructor.name),
+        arguments: [processValue(String(val))]
+      })
+    }
+
+    if (options.instanceAsObject || isPlainObject(val)) {
+      const properties: Property[] = []
+      if (Object.getPrototypeOf(val) == null) {
+        properties.push({
+          type: 'Property',
+          method: false,
+          shorthand: false,
+          computed: false,
+          kind: 'init',
+          key: identifier('__proto__'),
+          value: { type: 'Literal', value: null }
+        })
+      }
+
+      const definition = define(val, {
+        type: 'ObjectExpression',
+        properties
+      })
+
+      for (const key of Reflect.ownKeys(val)) {
+        const keyExpression = processValue(key)
+        const valueExpression = processValue((val as Record<string | symbol, unknown>)[key])
+        if (isIdentifier(definition) && isIdentifier(valueExpression)) {
+          statements.push({
+            type: 'ExpressionStatement',
+            expression: {
+              type: 'AssignmentExpression',
+              operator: '=',
+              left: {
+                type: 'MemberExpression',
+                computed: true,
+                optional: false,
+                object: identifier(definition.name),
+                property: keyExpression
+              },
+              right: valueExpression
+            }
+          })
+        } else {
+          properties.push({
+            type: 'Property',
+            method: false,
+            shorthand: false,
+            computed: typeof key !== 'string',
+            kind: 'init',
+            key: keyExpression,
+            value: valueExpression
+          })
+        }
+      }
+
+      return definition
+    }
+
+    throw new TypeError(`Unsupported value: ${val}`)
+  }
+
+  const result = processValue(value)
 
   if (statements.length === 0) {
     return declarations[0]?.init ?? result

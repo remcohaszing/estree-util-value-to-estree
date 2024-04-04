@@ -5,7 +5,7 @@ import { generate } from 'astring'
 import { valueToEstree } from 'estree-util-value-to-estree'
 import { testFixturesDirectory } from 'snapshot-fixtures'
 
-testFixturesDirectory<{ recursive?: boolean }>({
+testFixturesDirectory({
   directory: new URL('../fixtures', import.meta.url),
   prettier: true,
   tests: {

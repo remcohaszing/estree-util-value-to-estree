@@ -239,7 +239,6 @@ export interface Options {
  *   The ESTree node.
  */
 export function valueToEstree(value: unknown, options: Options = {}): Expression {
-  const declarations: VariableDeclarator[] = []
   const stack: unknown[] = []
   const collectedContexts = new Map<unknown, Context>()
   const finalizers: Expression[] = []
@@ -575,7 +574,6 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
 
   analyze(value)
 
-  const rootContext = collectedContexts.get(value)!
   for (const [val, context] of collectedContexts) {
     if (context.recursive || context.count > 1) {
       // Assign reused or recursive references to a variable.
@@ -591,17 +589,15 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
     return generate(value)
   }
 
-  for (const context of namedContexts.sort(compareContexts)) {
-    declarations.push({
-      type: 'VariableDeclarator',
-      id: identifier(context.name!),
-      init: generate(context.value, true)
-    })
-  }
+  const declarations = namedContexts.sort(compareContexts).map<VariableDeclarator>((context) => ({
+    type: 'VariableDeclarator',
+    id: identifier(context.name!),
+    init: generate(context.value, true)
+  }))
 
+  const rootContext = collectedContexts.get(value)
   finalizers.push(
-    finalExpression ||
-      (rootContext.name ? identifier(rootContext.name) : generate(rootContext.value))
+    finalExpression || (rootContext ? identifier(rootContext.name!) : generate(value))
   )
 
   return {

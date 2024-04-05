@@ -254,7 +254,7 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
    */
   function analyze(val: unknown): undefined {
     if (typeof val === 'function') {
-      throw new TypeError(`Unsupported value: ${val}`)
+      throw new TypeError(`Unsupported value: ${val}`, { cause: val })
     }
 
     if (typeof val !== 'object') {
@@ -272,7 +272,7 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
       }
       if (stack.includes(val)) {
         if (!options.preserveReferences) {
-          throw new Error(`Found recursive value: ${val}`)
+          throw new Error(`Found circular reference: ${val}`, { cause: val })
         }
         const parent = stack.at(-1)!
         const parentContext = collectedContexts.get(parent)!
@@ -315,7 +315,7 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
         analyze((val as Record<string | symbol, unknown>)[key])
       }
     } else {
-      throw new TypeError(`Unsupported value: ${val}`)
+      throw new TypeError(`Unsupported value: ${val}`, { cause: val })
     }
     stack.pop()
   }
@@ -367,7 +367,7 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
         return methodCall(identifier('Symbol'), 'for', [literal(val.description)])
       }
 
-      throw new TypeError(`Only global symbols are supported, got: ${String(val)}`)
+      throw new TypeError(`Only global symbols are supported, got: ${String(val)}`, { cause: val })
     }
 
     const context = collectedContexts.get(val)

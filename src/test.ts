@@ -1,4 +1,4 @@
-import * as assert from 'node:assert/strict'
+import assert from 'node:assert/strict'
 import { test } from 'node:test'
 
 import { generate } from 'astring'
@@ -34,18 +34,58 @@ testFixturesDirectory({
 })
 
 test('throw for local symbols', () => {
+  const symbol = Symbol('local')
   assert.throws(
-    () => valueToEstree(Symbol('local')),
-    new TypeError('Only global symbols are supported, got: Symbol(local)')
+    () => valueToEstree(symbol),
+    (error) => {
+      assert(error instanceof TypeError)
+      assert.equal(error.message, 'Only global symbols are supported, got: Symbol(local)')
+      assert.equal(error.cause, symbol)
+      return true
+    }
   )
 })
 
 test('throw for unsupported values', () => {
-  assert.throws(() => valueToEstree(() => null), new TypeError('Unsupported value: () => null'))
+  const fn = (): null => null
+  assert.throws(
+    () => valueToEstree(fn),
+    (error) => {
+      assert(error instanceof TypeError)
+      assert.equal(error.message, 'Unsupported value: () => null')
+      assert.equal(error.cause, fn)
+      return true
+    }
+  )
+
   class A {
     a = ''
   }
-  assert.throws(() => valueToEstree(new A()), new TypeError('Unsupported value: [object Object]'))
+
+  const a = new A()
+  assert.throws(
+    () => valueToEstree(a),
+    (error) => {
+      assert(error instanceof TypeError)
+      assert.equal(error.message, 'Unsupported value: [object Object]')
+      assert.equal(error.cause, a)
+      return true
+    }
+  )
+})
+
+test('throw for cyclic references', () => {
+  const object: Record<string, unknown> = {}
+  object.reference = object
+  assert.throws(
+    () => valueToEstree(object),
+    (error) => {
+      assert(error instanceof Error)
+      assert.equal(error.message, 'Found circular reference: [object Object]')
+      assert.equal(error.cause, object)
+      return true
+    }
+  )
 })
 
 test('transform to json on unsupported values w/ `instanceAsObject`', () => {

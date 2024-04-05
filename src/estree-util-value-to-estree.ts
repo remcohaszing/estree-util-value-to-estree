@@ -9,7 +9,7 @@ import {
 import isPlainObject from 'is-plain-obj'
 
 /**
- * Create an estree identifier node for a given name.
+ * Create an ESTree identifier node for a given name.
  *
  * @param name
  *   The name of the identifier.
@@ -21,7 +21,7 @@ function identifier(name: string): Identifier {
 }
 
 /**
- * Create an estree literal node for a given value.
+ * Create an ESTree literal node for a given value.
  *
  * @param value
  *   The value for which to create a literal.
@@ -33,7 +33,7 @@ function literal(value: SimpleLiteral['value']): SimpleLiteral {
 }
 
 /**
- * Create an estree call expression on an object member.
+ * Create an ESTree call expression on an object member.
  *
  * @param object
  *   The object to call the method on.
@@ -60,11 +60,11 @@ function methodCall(object: Expression, property: string, args: Expression[]): E
 }
 
 /**
- * Turn a number or bigint into an estree expression. This handles positive and negative numbers and
+ * Turn a number or bigint into an ESTree expression. This handles positive and negative numbers and
  * bigints as well as special numbers.
  *
  * @param number
- *   The value to turn into an estree expression.
+ *   The value to turn into an ESTree expression.
  * @returns
  *   An expression that represents the given value.
  */
@@ -96,7 +96,7 @@ function processNumber(number: bigint | number): Expression {
  * @param numbers
  *   The numbers to add to the array expression.
  * @returns
- *   An estree array expression whose elements match the input numbers.
+ *   An ESTree array expression whose elements match the input numbers.
  */
 function processNumberArray(numbers: Iterable<bigint | number>): Expression {
   const elements: Expression[] = []
@@ -340,14 +340,14 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
   }
 
   /**
-   * Recursively generate the estree expression needed to reconstruct the value.
+   * Recursively generate the ESTree expression needed to reconstruct the value.
    *
    * @param val
    *   The value to process.
    * @param isDeclaration
    *   Whether or not this is for a variable declaration.
    * @returns
-   *   The estree expression to reconstruct the value.
+   *   The ESTree expression to reconstruct the value.
    */
   function generate(val: unknown, isDeclaration?: boolean): Expression {
     if (val === undefined) {

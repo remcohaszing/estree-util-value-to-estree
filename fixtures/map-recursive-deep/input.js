@@ -1,14 +1,14 @@
 // Used as input
 // { preserveReferences: true }
 export default (() => {
-  const var1 = new Map(),
-    var2 = new Map(),
-    var0 = new Map([
+  const $1 = new Map(),
+    $2 = new Map(),
+    $0 = new Map([
       ['recursive', 'value'],
-      ['key', var1],
-      [var2, 'value']
+      ['key', $1],
+      [$2, 'value']
     ])
-  return var1.set('key', var0), var2.set(var0, 'value'), var0
+  return $1.set('key', $0), $2.set($0, 'value'), $0
 })()
 
 // -------------------------------------------------------------------------------------------------

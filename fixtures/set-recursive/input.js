@@ -1,8 +1,8 @@
 // Used as input
 // { preserveReferences: true }
 export default (() => {
-  const var0 = new Set(['recursive'])
-  return var0.add(var0)
+  const $0 = new Set(['recursive'])
+  return $0.add($0)
 })()
 
 // -------------------------------------------------------------------------------------------------

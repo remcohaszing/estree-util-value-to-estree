@@ -1,9 +1,9 @@
 // Used as input
 // { preserveReferences: true }
 export default (() => {
-  const var1 = new Set(['var1']),
-    var0 = new Set(['var0', var1])
-  return var1.add(var0), var0
+  const $1 = new Set(['variable 1']),
+    $0 = new Set(['variable 0', $1])
+  return $1.add($0), $0
 })()
 
 // -------------------------------------------------------------------------------------------------

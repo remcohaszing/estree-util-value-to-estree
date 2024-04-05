@@ -1,8 +1,8 @@
 // Used as input
 // { preserveReferences: true }
 export default (() => {
-  const var0 = new Date(3)
-  return [1, 'Hello', null, new Date(1), new Date(2), var0, var0]
+  const $0 = new Date(3)
+  return [1, 'Hello', null, new Date(1), new Date(2), $0, $0]
 })()
 
 // -------------------------------------------------------------------------------------------------

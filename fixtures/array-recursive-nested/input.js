@@ -1,9 +1,9 @@
 // Used as input
 // { preserveReferences: true }
 export default (() => {
-  const var1 = ['var1', ,],
-    var0 = ['var0', var1]
-  return (var1[1] = var0)
+  const $1 = ['variable 1', ,],
+    $0 = ['variable 0', $1]
+  return ($1[1] = $0)
 })()
 
 // -------------------------------------------------------------------------------------------------

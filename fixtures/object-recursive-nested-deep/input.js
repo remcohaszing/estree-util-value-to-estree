@@ -1,17 +1,17 @@
 // Used as input
 // { preserveReferences: true }
 export default (() => {
-  const var1 = {
-      name: 'var1'
+  const $1 = {
+      name: 'variable 1'
     },
-    var0 = {
-      name: 'var0',
-      var2: {
-        name: 'var2',
-        var1: var1
+    $0 = {
+      name: 'variable 0',
+      $2: {
+        name: 'variable 2',
+        $1: $1
       }
     }
-  return (var1['var0'] = var0)
+  return ($1['variable 0'] = $0)
 })()
 
 // -------------------------------------------------------------------------------------------------

@@ -579,7 +579,7 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
   for (const [val, context] of collectedContexts) {
     if (context.recursive || context.count > 1) {
       // Assign reused or recursive references to a variable.
-      context.name = `var${namedContexts.length}`
+      context.name = `$${namedContexts.length}`
       namedContexts.push(context)
     } else {
       // Otherwise don’t treat it as a reference.

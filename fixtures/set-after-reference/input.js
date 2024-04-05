@@ -1,8 +1,8 @@
 // Used as input
 // { preserveReferences: true }
 export default (() => {
-  const var0 = new Set(['before reference'])
-  return var0.add(var0).add('after reference')
+  const $0 = new Set(['before reference'])
+  return $0.add($0).add('after reference')
 })()
 
 // -------------------------------------------------------------------------------------------------

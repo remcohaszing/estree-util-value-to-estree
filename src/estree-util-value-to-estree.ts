@@ -426,6 +426,7 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
           childContext &&
           namedContexts.indexOf(childContext) >= namedContexts.indexOf(context)
         ) {
+          elements[index] = null
           addFinalizer(child, {
             type: 'AssignmentExpression',
             operator: '=',

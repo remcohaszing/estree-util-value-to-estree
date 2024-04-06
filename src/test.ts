@@ -28,7 +28,8 @@ testFixturesDirectory({
 
         // Default output
         // { preserveReferences: false }
-        ${withoutPreserveReferences}`
+        ${withoutPreserveReferences}
+      `
     }
   }
 })

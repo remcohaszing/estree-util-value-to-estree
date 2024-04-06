@@ -412,10 +412,12 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
 
     if (Array.isArray(val)) {
       const elements: (Expression | null)[] = Array.from({ length: val.length })
+      let trimmable: number | undefined
 
       for (let index = 0; index < val.length; index += 1) {
         if (!(index in val)) {
           elements[index] = null
+          trimmable = undefined
           continue
         }
 
@@ -427,6 +429,7 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
           namedContexts.indexOf(childContext) >= namedContexts.indexOf(context)
         ) {
           elements[index] = null
+          trimmable ||= index
           addFinalizer(child, {
             type: 'AssignmentExpression',
             operator: '=',
@@ -441,7 +444,12 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
           })
         } else {
           elements[index] = generate(child)
+          trimmable = undefined
         }
+      }
+
+      if (trimmable != null) {
+        elements.splice(trimmable)
       }
 
       return {

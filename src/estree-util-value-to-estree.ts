@@ -192,6 +192,11 @@ interface Context {
   recursive: boolean
 
   /**
+   * A set of values that reference the value in this context.
+   */
+  referencedBy: Set<unknown>
+
+  /**
    * The value this context belongs to.
    */
   value: unknown
@@ -208,6 +213,19 @@ interface Context {
  *   The count of context a minus the count of context b.
  */
 function compareContexts(a: Context, b: Context): number {
+  const aReferencedByB = a.referencedBy.has(b.value)
+  const bReferencedByA = b.referencedBy.has(a.value)
+
+  if (aReferencedByB) {
+    if (bReferencedByA) {
+      return a.count - b.count
+    }
+    return -1
+  }
+  if (bReferencedByA) {
+    return 1
+  }
+
   return a.count - b.count
 }
 
@@ -269,6 +287,9 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
       if (options.preserveReferences) {
         context.count += 1
       }
+      for (const ancestor of stack) {
+        context.referencedBy.add(ancestor)
+      }
       if (stack.includes(val)) {
         if (!options.preserveReferences) {
           throw new Error(`Found circular reference: ${val}`, { cause: val })
@@ -281,7 +302,12 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
       return
     }
 
-    collectedContexts.set(val, { count: 1, recursive: false, value: val })
+    collectedContexts.set(val, {
+      count: 1,
+      recursive: false,
+      referencedBy: new Set(stack),
+      value: val
+    })
 
     if (isTypedArray(val)) {
       return

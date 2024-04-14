@@ -226,6 +226,13 @@ export interface Options {
    * @default false
    */
   preserveReferences?: boolean
+
+  /**
+   * Process values with unsupported types, e.g. inserializable class
+   *
+   * @returns estree expression
+   */
+  fallback?: (value: unknown) => Expression
 }
 
 /**
@@ -313,7 +320,8 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
       for (const key of Reflect.ownKeys(val)) {
         analyze((val as Record<string | symbol, unknown>)[key])
       }
-    } else {
+      // We won't analyze unsupported values even if they're class instances
+    } else if (!options.fallback) {
       throw new TypeError(`Unsupported value: ${val}`, { cause: val })
     }
     stack.pop()
@@ -526,59 +534,67 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
       }
     }
 
-    const properties: Property[] = []
-    if (Object.getPrototypeOf(val) == null) {
-      properties.push({
-        type: 'Property',
-        method: false,
-        shorthand: false,
-        computed: false,
-        kind: 'init',
-        key: identifier('__proto__'),
-        value: literal(null)
-      })
-    }
-
-    const object = val as Record<string | symbol, unknown>
-    for (const key of Reflect.ownKeys(val)) {
-      const computed = typeof key !== 'string'
-      const keyExpression = generate(key)
-      const child = object[key]
-      const childContext = collectedContexts.get(child)
-      if (
-        context &&
-        childContext &&
-        namedContexts.indexOf(childContext) >= namedContexts.indexOf(context)
-      ) {
-        addFinalizer(child, {
-          type: 'AssignmentExpression',
-          operator: '=',
-          left: {
-            type: 'MemberExpression',
-            computed: true,
-            optional: false,
-            object: identifier(context.name!),
-            property: keyExpression
-          },
-          right: generate(child)
-        })
-      } else {
+    if (isPlainObject(val) || options.instanceAsObject) {
+      const properties: Property[] = []
+      if (Object.getPrototypeOf(val) == null) {
         properties.push({
           type: 'Property',
           method: false,
           shorthand: false,
-          computed,
+          computed: false,
           kind: 'init',
-          key: keyExpression,
-          value: generate(child)
+          key: identifier('__proto__'),
+          value: literal(null)
         })
+      }
+
+      const object = val as Record<string | symbol, unknown>
+      for (const key of Reflect.ownKeys(val)) {
+        const computed = typeof key !== 'string'
+        const keyExpression = generate(key)
+        const child = object[key]
+        const childContext = collectedContexts.get(child)
+        if (
+          context &&
+          childContext &&
+          namedContexts.indexOf(childContext) >= namedContexts.indexOf(context)
+        ) {
+          addFinalizer(child, {
+            type: 'AssignmentExpression',
+            operator: '=',
+            left: {
+              type: 'MemberExpression',
+              computed: true,
+              optional: false,
+              object: identifier(context.name!),
+              property: keyExpression
+            },
+            right: generate(child)
+          })
+        } else {
+          properties.push({
+            type: 'Property',
+            method: false,
+            shorthand: false,
+            computed,
+            kind: 'init',
+            key: keyExpression,
+            value: generate(child)
+          })
+        }
+      }
+
+      return {
+        type: 'ObjectExpression',
+        properties
       }
     }
 
-    return {
-      type: 'ObjectExpression',
-      properties
+    if (options.fallback) {
+      return options.fallback(val)
     }
+
+    throw new TypeError(`Unsupported value: ${val}`, { cause: val })
   }
 
   analyze(value)

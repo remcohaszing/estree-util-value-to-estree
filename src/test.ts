@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { test } from 'node:test'
 
 import { generate } from 'astring'
+import { type Expression } from 'estree'
 import { valueToEstree } from 'estree-util-value-to-estree'
 import { testFixturesDirectory } from 'snapshot-fixtures'
 
@@ -128,4 +129,71 @@ test('transform to json on unsupported values w/ `instanceAsObject`', () => {
       }
     ]
   })
+})
+
+test('transform with fallbacks', () => {
+  class Ignore {
+    value: Expression
+
+    constructor(v: Expression) {
+      this.value = v
+    }
+  }
+
+  assert.deepEqual(
+    valueToEstree(new Ignore({ type: 'Literal', value: 'Hello World' }), {
+      fallback(v) {
+        if (v instanceof Ignore) {
+          return v.value as Expression
+        }
+
+        throw new Error(`Unsupported value: ${v}`)
+      }
+    }),
+    {
+      type: 'Literal',
+      value: 'Hello World'
+    }
+  )
+
+  assert.deepEqual(
+    valueToEstree(
+      {
+        name: 'Hey',
+        description: new Ignore({ type: 'Literal', value: 'Hello World' })
+      },
+      {
+        fallback(v) {
+          if (v instanceof Ignore) {
+            return v.value
+          }
+
+          throw new Error(`Unsupported value: ${v}`)
+        }
+      }
+    ),
+    {
+      type: 'ObjectExpression',
+      properties: [
+        {
+          type: 'Property',
+          method: false,
+          shorthand: false,
+          computed: false,
+          kind: 'init',
+          key: { type: 'Literal', value: 'name' },
+          value: { type: 'Literal', value: 'Hey' }
+        },
+        {
+          type: 'Property',
+          method: false,
+          shorthand: false,
+          computed: false,
+          kind: 'init',
+          key: { type: 'Literal', value: 'description' },
+          value: { type: 'Literal', value: 'Hello World' }
+        }
+      ]
+    }
+  )
 })

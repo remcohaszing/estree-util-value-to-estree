@@ -177,6 +177,11 @@ function isTypedArray(
 
 interface Context {
   /**
+   * The assignment expression of the variable.
+   */
+  assignment?: Expression
+
+  /**
    * The number of references to this value.
    */
   count: number
@@ -247,6 +252,32 @@ export interface Options {
 }
 
 /**
+ * Replace the assigned right hand expression with the new expression.
+ *
+ * If there is no assignment expression, the original expression is returned. Otherwise the
+ * assignment is modified and returned,
+ *
+ * @param expression
+ *   The expression to use for the assignment.
+ * @param assignment
+ *   The existing assignmentexpression
+ * @returns
+ *   The new expression.
+ */
+function replaceAssignment(expression: Expression, assignment: Expression | undefined): Expression {
+  if (!assignment || assignment.type !== 'AssignmentExpression') {
+    return expression
+  }
+
+  let node = assignment
+  while (node.right.type === 'AssignmentExpression') {
+    node = node.right
+  }
+  node.right = expression
+  return assignment
+}
+
+/**
  * Convert a value to an ESTree node.
  *
  * @param value
@@ -259,9 +290,7 @@ export interface Options {
 export function valueToEstree(value: unknown, options: Options = {}): Expression {
   const stack: unknown[] = []
   const collectedContexts = new Map<unknown, Context>()
-  const finalizers: Expression[] = []
   const namedContexts: Context[] = []
-  let finalExpression: Expression | undefined
 
   /**
    * Analyze a value and collect all reference contexts.
@@ -343,25 +372,6 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
       throw new TypeError(`Unsupported value: ${val}`, { cause: val })
     }
     stack.pop()
-  }
-
-  /**
-   * Add a finalizer. A finalizer is an expression needed to reconstruct a value after its initial
-   * creation.
-   *
-   * @param val
-   *   The value returned by the expression.
-   * @param expression
-   *   The expression used to finalize the reconstruction of a value.
-   */
-  function addFinalizer(val: unknown, expression: Expression | undefined): undefined {
-    if (expression) {
-      if (val === value && !finalExpression) {
-        finalExpression = expression
-      } else {
-        finalizers.push(expression)
-      }
-    }
   }
 
   /**
@@ -456,7 +466,7 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
         ) {
           elements[index] = null
           trimmable ||= index
-          addFinalizer(child, {
+          childContext.assignment = {
             type: 'AssignmentExpression',
             operator: '=',
             left: {
@@ -466,8 +476,8 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
               object: identifier(context.name!),
               property: literal(index)
             },
-            right: identifier(childContext.name!)
-          })
+            right: childContext.assignment || identifier(childContext.name!)
+          }
         } else {
           elements[index] = generate(child)
           trimmable = undefined
@@ -505,7 +515,9 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
         }
       }
 
-      addFinalizer(val, finalizer)
+      if (context && finalizer) {
+        context.assignment = replaceAssignment(finalizer, context.assignment)
+      }
 
       return {
         type: 'NewExpression',
@@ -543,7 +555,9 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
         }
       }
 
-      addFinalizer(val, finalizer)
+      if (context && finalizer) {
+        context.assignment = replaceAssignment(finalizer, context.assignment)
+      }
 
       return {
         type: 'NewExpression',
@@ -576,7 +590,7 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
         childContext &&
         namedContexts.indexOf(childContext) >= namedContexts.indexOf(context)
       ) {
-        addFinalizer(child, {
+        childContext.assignment = {
           type: 'AssignmentExpression',
           operator: '=',
           left: {
@@ -586,8 +600,8 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
             object: identifier(context.name!),
             property: keyExpression
           },
-          right: generate(child)
-        })
+          right: childContext.assignment || generate(child)
+        }
       } else {
         properties.push({
           type: 'Property',
@@ -631,8 +645,14 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
   }))
 
   const rootContext = collectedContexts.get(value)
+  const finalizers: Expression[] = []
+  for (const context of collectedContexts.values()) {
+    if (context !== rootContext && context.assignment) {
+      finalizers.push(context.assignment)
+    }
+  }
   finalizers.push(
-    finalExpression || (rootContext ? identifier(rootContext.name!) : generate(value))
+    rootContext ? rootContext.assignment || identifier(rootContext.name!) : generate(value)
   )
 
   return {

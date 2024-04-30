@@ -13,7 +13,7 @@ export default (() => {
     $1 = new Map()
   return (
     ($0['map'] = $3['map'] = $2['map'] = $1.set($1, $1).set($2, $2).set($3, $3).set($0, $0)),
-    ($0['resursive'] = $0)
+    ($0['recursive'] = $0)
   )
 })()
 

@@ -12,7 +12,7 @@ export default (() => {
     },
     $1 = new Set()
   return (
-    ($0['set'] = $3['set'] = $2['set'] = $1.add($1).add($2).add($3).add($0)), ($0['resursive'] = $0)
+    ($0['set'] = $3['set'] = $2['set'] = $1.add($1).add($2).add($3).add($0)), ($0['recursive'] = $0)
   )
 })()
 

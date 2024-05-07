@@ -29,8 +29,7 @@
     "test": "c8 node --enable-source-maps dist/test.js"
   },
   "dependencies": {
-    "@types/estree": "^1.0.0",
-    "is-plain-obj": "^4.0.0"
+    "@types/estree": "^1.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

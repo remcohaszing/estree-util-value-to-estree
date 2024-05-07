@@ -6,7 +6,6 @@ import {
   type SimpleLiteral,
   type VariableDeclarator
 } from 'estree'
-import isPlainObject from 'is-plain-obj'
 
 /**
  * Create an ESTree identifier node for a given name.
@@ -364,12 +363,15 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
       for (const entry of val) {
         analyze(entry)
       }
-    } else if (options.instanceAsObject || isPlainObject(val)) {
+    } else {
+      const proto = Object.getPrototypeOf(val)
+      if (proto != null && proto !== Object.prototype && !options.instanceAsObject) {
+        throw new TypeError(`Unsupported value: ${val}`, { cause: val })
+      }
+
       for (const key of Reflect.ownKeys(val)) {
         analyze((val as Record<string | symbol, unknown>)[key])
       }
-    } else {
-      throw new TypeError(`Unsupported value: ${val}`, { cause: val })
     }
     stack.pop()
   }

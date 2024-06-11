@@ -13,7 +13,6 @@ Convert a JavaScript value to an [ESTree](https://github.com/estree/estree) expr
 - [Usage](#usage)
 - [API](#api)
   - [`valueToEstree(value, options?)`](#valuetoestreevalue-options)
-    - [options](#options)
 - [Compatibility](#compatibility)
 - [License](#license)
 

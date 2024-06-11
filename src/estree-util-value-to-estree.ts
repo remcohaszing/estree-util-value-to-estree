@@ -78,7 +78,7 @@ function processNumber(number: bigint | number): Expression {
   }
 
   if (typeof number === 'bigint') {
-    return { type: 'Literal', value: number, bigint: String(number) }
+    return { type: 'Literal', bigint: String(number) }
   }
 
   if (number === Number.POSITIVE_INFINITY || Number.isNaN(number)) {
@@ -423,7 +423,6 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
     if (val instanceof RegExp) {
       return {
         type: 'Literal',
-        value: val,
         regex: { pattern: val.source, flags: val.flags }
       }
     }

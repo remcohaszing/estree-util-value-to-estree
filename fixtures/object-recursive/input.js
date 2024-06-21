@@ -11,4 +11,4 @@ export default (() => {
 
 // Default output
 // { preserveReferences: false }
-// Recursive references are not supported witout preserveReferences
+// Recursive references are not supported without preserveReferences

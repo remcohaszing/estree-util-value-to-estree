@@ -17,7 +17,7 @@ testFixturesDirectory({
         withoutPreserveReferences = `const withoutPreserveReferences = ${generate(valueToEstree(value))}`
       } catch {
         withoutPreserveReferences =
-          '// Recursive references are not supported witout preserveReferences'
+          '// Recursive references are not supported without preserveReferences'
       }
       return `
         // Used as input

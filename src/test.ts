@@ -103,7 +103,15 @@ test('transform to json on unsupported values w/ `instanceAsObject`', () => {
 
   const point = new Point(2, 3)
 
-  assert.throws(() => valueToEstree(point), new TypeError('Unsupported value: [object Object]'))
+  assert.throws(
+    () => valueToEstree(point),
+    (error) => {
+      assert(error instanceof TypeError)
+      assert.equal(error.message, 'Unsupported value: [object Object]')
+      assert.equal(error.cause, point)
+      return true
+    }
+  )
 
   assert.deepEqual(valueToEstree(point, { instanceAsObject: true }), {
     type: 'ObjectExpression',

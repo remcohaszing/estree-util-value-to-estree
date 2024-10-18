@@ -137,6 +137,14 @@ function isValueReconstructable(value: unknown): value is Boolean | Date | Numbe
   )
 }
 
+const wellKnownSymbols = new Map<symbol, string>()
+for (const name of Reflect.ownKeys(Symbol) as (keyof typeof Symbol)[]) {
+  const value = Symbol[name]
+  if (typeof value === 'symbol') {
+    wellKnownSymbols.set(value, name)
+  }
+}
+
 /**
  * Check whether a value is a typed array.
  *
@@ -400,6 +408,17 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
     }
 
     if (typeof val === 'symbol') {
+      const name = wellKnownSymbols.get(val)
+      if (name) {
+        return {
+          type: 'MemberExpression',
+          computed: false,
+          optional: false,
+          object: identifier('Symbol'),
+          property: identifier(name)
+        }
+      }
+
       if (val.description && val === Symbol.for(val.description)) {
         return methodCall(identifier('Symbol'), 'for', [literal(val.description)])
       }

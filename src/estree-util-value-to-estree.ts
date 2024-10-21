@@ -2,6 +2,7 @@ import {
   type ArrayExpression,
   type Expression,
   type Identifier,
+  type ObjectExpression,
   type Property,
   type SimpleLiteral,
   type VariableDeclarator
@@ -36,14 +37,14 @@ function literal(value: SimpleLiteral['value']): SimpleLiteral {
  *
  * @param object
  *   The object to call the method on.
- * @param property
+ * @param name
  *   The name of the method to call.
  * @param args
  *   Arguments to pass to the function call
  * @returns
  *   The call expression node.
  */
-function methodCall(object: Expression, property: string, args: Expression[]): Expression {
+function methodCall(object: Expression, name: string, args: Expression[]): Expression {
   return {
     type: 'CallExpression',
     optional: false,
@@ -52,7 +53,7 @@ function methodCall(object: Expression, property: string, args: Expression[]): E
       computed: false,
       optional: false,
       object,
-      property: identifier(property)
+      property: identifier(name)
     },
     arguments: args
   }
@@ -285,6 +286,59 @@ function replaceAssignment(expression: Expression, assignment: Expression | unde
 }
 
 /**
+ * Create an ESTree epxression to represent a symbol. Global and well-known symbols are supported.
+ *
+ * @param symbol
+ *   THe symbol to represent.
+ * @returns
+ *   An ESTree expression to represent the symbol.
+ */
+function symbolToEstree(symbol: symbol): Expression {
+  const name = wellKnownSymbols.get(symbol)
+  if (name) {
+    return {
+      type: 'MemberExpression',
+      computed: false,
+      optional: false,
+      object: identifier('Symbol'),
+      property: identifier(name)
+    }
+  }
+
+  if (symbol.description && symbol === Symbol.for(symbol.description)) {
+    return methodCall(identifier('Symbol'), 'for', [literal(symbol.description)])
+  }
+
+  throw new TypeError(`Only global symbols are supported, got: ${String(symbol)}`, {
+    cause: symbol
+  })
+}
+
+/**
+ * Create an ESTree property from a key and a value expression.
+ *
+ * @param key
+ *   The property key value
+ * @param value
+ *   The property value as an ESTree expression.
+ * @returns
+ *   The ESTree properry node.
+ */
+function property(key: string | symbol, value: Expression): Property {
+  const computed = typeof key !== 'string'
+
+  return {
+    type: 'Property',
+    method: false,
+    shorthand: false,
+    computed,
+    kind: 'init',
+    key: computed ? symbolToEstree(key) : literal(key),
+    value
+  }
+}
+
+/**
  * Convert a value to an ESTree node.
  *
  * @param value
@@ -408,22 +462,7 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
     }
 
     if (typeof val === 'symbol') {
-      const name = wellKnownSymbols.get(val)
-      if (name) {
-        return {
-          type: 'MemberExpression',
-          computed: false,
-          optional: false,
-          object: identifier('Symbol'),
-          property: identifier(name)
-        }
-      }
-
-      if (val.description && val === Symbol.for(val.description)) {
-        return methodCall(identifier('Symbol'), 'for', [literal(val.description)])
-      }
-
-      throw new TypeError(`Only global symbols are supported, got: ${String(val)}`, { cause: val })
+      return symbolToEstree(val)
     }
 
     const context = collectedContexts.get(val)
@@ -588,24 +627,34 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
 
     const properties: Property[] = []
     if (Object.getPrototypeOf(val) == null) {
-      properties.push({
-        type: 'Property',
-        method: false,
-        shorthand: false,
-        computed: false,
-        kind: 'init',
-        key: identifier('__proto__'),
-        value: literal(null)
-      })
+      properties.push(property('__proto__', literal(null)))
     }
 
     const object = val as Record<string | symbol, unknown>
+    const propertyDescriptors: Property[] = []
     for (const key of Reflect.ownKeys(val)) {
-      const computed = typeof key !== 'string'
-      const keyExpression = generate(key)
+      // TODO [>=4] Throw an error for getters.
       const child = object[key]
+      const { configurable, enumerable, writable } = Object.getOwnPropertyDescriptor(val, key)!
       const childContext = collectedContexts.get(child)
-      if (
+      if (!configurable || !enumerable || !writable) {
+        const propertyDescriptor = [property('value', generate(child))]
+        if (configurable) {
+          propertyDescriptor.push(property('configurable', literal(true)))
+        }
+        if (enumerable) {
+          propertyDescriptor.push(property('enumerable', literal(true)))
+        }
+        if (writable) {
+          propertyDescriptor.push(property('writable', literal(true)))
+        }
+        propertyDescriptors.push(
+          property(key, {
+            type: 'ObjectExpression',
+            properties: propertyDescriptor
+          })
+        )
+      } else if (
         context &&
         childContext &&
         namedContexts.indexOf(childContext) >= namedContexts.indexOf(context)
@@ -618,27 +667,44 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
             computed: true,
             optional: false,
             object: identifier(context.name!),
-            property: keyExpression
+            property: generate(key)
           },
           right: childContext.assignment || generate(child)
         }
       } else {
-        properties.push({
-          type: 'Property',
-          method: false,
-          shorthand: false,
-          computed,
-          kind: 'init',
-          key: keyExpression,
-          value: generate(child)
-        })
+        properties.push(property(key, generate(child)))
       }
     }
 
-    return {
+    const objectExpression: ObjectExpression = {
       type: 'ObjectExpression',
       properties
     }
+
+    if (propertyDescriptors.length) {
+      if (!context) {
+        return methodCall(identifier('Object'), 'defineProperties', [
+          objectExpression,
+          {
+            type: 'ObjectExpression',
+            properties: propertyDescriptors
+          }
+        ])
+      }
+
+      context.assignment = replaceAssignment(
+        methodCall(identifier('Object'), 'defineProperties', [
+          identifier(context.name!),
+          {
+            type: 'ObjectExpression',
+            properties: propertyDescriptors
+          }
+        ]),
+        context.assignment
+      )
+    }
+
+    return objectExpression
   }
 
   analyze(value)

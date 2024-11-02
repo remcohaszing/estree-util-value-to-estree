@@ -1,9 +1,7 @@
 // Used as input
 // { preserveReferences: true }
 export default [
-  Symbol.asyncDispose,
   Symbol.asyncIterator,
-  Symbol.dispose,
   Symbol.hasInstance,
   Symbol.isConcatSpreadable,
   Symbol.iterator,
@@ -23,9 +21,7 @@ export default [
 // Default output
 // { preserveReferences: false }
 const withoutPreserveReferences = [
-  Symbol.asyncDispose,
   Symbol.asyncIterator,
-  Symbol.dispose,
   Symbol.hasInstance,
   Symbol.isConcatSpreadable,
   Symbol.iterator,

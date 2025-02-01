@@ -1,3 +1,4 @@
+import { type Temporal as LocalTemporal } from '@js-temporal/polyfill'
 import {
   type ArrayExpression,
   type Expression,
@@ -339,6 +340,66 @@ function property(key: string | symbol, value: Expression): Property {
 }
 
 /**
+ * Convert a Temporal value to a constructor call.
+ *
+ * @param name
+ *   The name of the constructor.
+ * @param values
+ *   The numeric values to pass to the constructor.
+ * @param calendar
+ *   The calendar name to pass to the constructor.
+ * @param defaultReferenceValue
+ *   The default reference value of the temporal object.
+ * @param referenceValue
+ *   The reference value of the temporal object.
+ * @returns
+ *   An ESTree expression which represents the constructor call.
+ */
+function temporalConstructor(
+  name: string,
+  values: (bigint | number | string)[],
+  calendar: LocalTemporal.CalendarProtocol | string = 'iso8601',
+  defaultReferenceValue?: number,
+  referenceValue?: number
+): Expression {
+  if (calendar && typeof calendar !== 'string') {
+    throw new Error(`Unsupported calendar: ${calendar}`, { cause: calendar })
+  }
+
+  const args: Expression[] = []
+
+  if (
+    referenceValue != null &&
+    (calendar !== 'iso8601' || referenceValue !== defaultReferenceValue)
+  ) {
+    args.push(literal(referenceValue))
+  }
+
+  if (calendar !== 'iso8601' || args.length !== 0) {
+    args.unshift(literal(calendar))
+  }
+
+  for (let index = values.length - 1; index >= 0; index -= 1) {
+    const value = values[index]
+    if ((value !== 0 && value !== 0n) || args.length !== 0) {
+      args.unshift(typeof value === 'string' ? literal(value) : processNumber(value))
+    }
+  }
+
+  return {
+    type: 'NewExpression',
+    callee: {
+      type: 'MemberExpression',
+      computed: false,
+      optional: false,
+      object: identifier('Temporal'),
+      property: identifier(name)
+    },
+    arguments: args
+  }
+}
+
+/**
  * Convert a value to an ESTree node.
  *
  * @param value
@@ -412,6 +473,20 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
     }
 
     if (value instanceof RegExp) {
+      return
+    }
+
+    if (
+      Temporal !== undefined &&
+      (value instanceof Temporal.Duration ||
+        value instanceof Temporal.Instant ||
+        value instanceof Temporal.PlainDate ||
+        value instanceof Temporal.PlainDateTime ||
+        value instanceof Temporal.PlainYearMonth ||
+        value instanceof Temporal.PlainMonthDay ||
+        value instanceof Temporal.PlainTime ||
+        value instanceof Temporal.ZonedDateTime)
+    ) {
       return
     }
 
@@ -502,6 +577,98 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
         type: 'NewExpression',
         callee: identifier(val.constructor.name),
         arguments: [literal(String(val))]
+      }
+    }
+
+    if (Temporal !== undefined) {
+      if (val instanceof Temporal.Duration) {
+        return temporalConstructor('Duration', [
+          val.years,
+          val.months,
+          val.weeks,
+          val.days,
+          val.hours,
+          val.minutes,
+          val.seconds,
+          val.milliseconds,
+          val.microseconds,
+          val.nanoseconds
+        ])
+      }
+
+      if (val instanceof Temporal.Instant) {
+        return temporalConstructor('Instant', [val.epochNanoseconds])
+      }
+
+      if (val instanceof Temporal.PlainDate) {
+        const iso = val.getISOFields()
+        return temporalConstructor(
+          'PlainDate',
+          [iso.isoYear, iso.isoMonth, iso.isoDay],
+          iso.calendar
+        )
+      }
+
+      if (val instanceof Temporal.PlainDateTime) {
+        const iso = val.getISOFields()
+        return temporalConstructor(
+          'PlainDateTime',
+          [
+            iso.isoYear,
+            iso.isoMonth,
+            iso.isoDay,
+            iso.isoHour,
+            iso.isoMinute,
+            iso.isoSecond,
+            iso.isoMillisecond,
+            iso.isoMicrosecond,
+            iso.isoNanosecond
+          ],
+          iso.calendar
+        )
+      }
+
+      if (val instanceof Temporal.PlainMonthDay) {
+        const iso = val.getISOFields()
+        return temporalConstructor(
+          'PlainMonthDay',
+          [iso.isoMonth, iso.isoDay],
+          iso.calendar,
+          1972,
+          iso.isoYear
+        )
+      }
+
+      if (val instanceof Temporal.PlainTime) {
+        const iso = val.getISOFields()
+        return temporalConstructor('PlainTime', [
+          iso.isoHour,
+          iso.isoMinute,
+          iso.isoSecond,
+          iso.isoMillisecond,
+          iso.isoMicrosecond,
+          iso.isoNanosecond
+        ])
+      }
+
+      if (val instanceof Temporal.PlainYearMonth) {
+        const iso = val.getISOFields()
+        return temporalConstructor(
+          'PlainYearMonth',
+          [iso.isoYear, iso.isoMonth],
+          iso.calendar,
+          1,
+          iso.isoDay
+        )
+      }
+
+      if (val instanceof Temporal.ZonedDateTime) {
+        const iso = val.getISOFields()
+        return temporalConstructor(
+          'ZonedDateTime',
+          [val.epochNanoseconds, val.timeZoneId],
+          iso.calendar
+        )
       }
     }
 

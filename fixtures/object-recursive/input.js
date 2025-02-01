@@ -1,11 +1,10 @@
 // Used as input
 // { preserveReferences: true }
-export default (() => {
-  const $0 = {
+export default ((
+  $0 = {
     name: 'recursive'
   }
-  return ($0['recursive'] = $0)
-})()
+) => ($0['recursive'] = $0))()
 
 // -------------------------------------------------------------------------------------------------
 

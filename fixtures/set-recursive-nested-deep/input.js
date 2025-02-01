@@ -1,10 +1,9 @@
 // Used as input
 // { preserveReferences: true }
-export default (() => {
-  const $1 = new Set(['variable 1']),
-    $0 = new Set(['variable 0', new Set(['variable 2', $1])])
-  return $1.add($0), $0
-})()
+export default ((
+  $1 = new Set(['variable 1']),
+  $0 = new Set(['variable 0', new Set(['variable 2', $1])])
+) => ($1.add($0), $0))()
 
 // -------------------------------------------------------------------------------------------------
 

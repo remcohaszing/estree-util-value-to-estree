@@ -1,15 +1,14 @@
 // Used as input
 // { preserveReferences: true }
-export default (() => {
-  const $1 = {
-      name: 'variable 1'
-    },
-    $0 = {
-      name: 'variable 0',
-      $1: $1
-    }
-  return ($1['variable 0'] = $0)
-})()
+export default ((
+  $1 = {
+    name: 'variable 1'
+  },
+  $0 = {
+    name: 'variable 0',
+    $1: $1
+  }
+) => ($1['variable 0'] = $0))()
 
 // -------------------------------------------------------------------------------------------------
 

@@ -1,9 +1,6 @@
 // Used as input
 // { preserveReferences: true }
-export default (() => {
-  const $0 = new Set(['recursive'])
-  return $0.add($0)
-})()
+export default (($0 = new Set(['recursive'])) => $0.add($0))()
 
 // -------------------------------------------------------------------------------------------------
 

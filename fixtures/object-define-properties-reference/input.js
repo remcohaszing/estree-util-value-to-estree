@@ -1,11 +1,12 @@
 // Used as input
 // { preserveReferences: true }
-export default (() => {
-  const $1 = {},
-    $0 = {
-      string: 'Hello'
-    }
-  return ($0['assignment'] = Object.defineProperties($0, {
+export default ((
+  $1 = {},
+  $0 = {
+    string: 'Hello'
+  }
+) =>
+  ($0['assignment'] = Object.defineProperties($0, {
     configurable: {
       value: $0,
       configurable: true
@@ -18,8 +19,7 @@ export default (() => {
       value: $1,
       writable: true
     }
-  }))
-})()
+  })))()
 
 // -------------------------------------------------------------------------------------------------
 

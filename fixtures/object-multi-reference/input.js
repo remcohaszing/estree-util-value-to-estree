@@ -1,18 +1,15 @@
 // Used as input
 // { preserveReferences: true }
-export default (() => {
-  const $0 = new Date(3)
-  return {
-    number: 1,
-    string: 'Hello',
-    nothing: null,
-    'new Date(1)': new Date(1),
-    'new Date(2)': new Date(2),
-    'new Date(3)': $0,
-    'also new Date(3)': $0,
-    [Symbol.for('key')]: 'value'
-  }
-})()
+export default (($0 = new Date(3)) => ({
+  number: 1,
+  string: 'Hello',
+  nothing: null,
+  'new Date(1)': new Date(1),
+  'new Date(2)': new Date(2),
+  'new Date(3)': $0,
+  'also new Date(3)': $0,
+  [Symbol.for('key')]: 'value'
+}))()
 
 // -------------------------------------------------------------------------------------------------
 

@@ -4,9 +4,9 @@ import {
   type Expression,
   type Identifier,
   type ObjectExpression,
+  type Pattern,
   type Property,
-  type SimpleLiteral,
-  type VariableDeclarator
+  type SimpleLiteral
 } from 'estree'
 
 /**
@@ -891,10 +891,10 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
     return generate(value)
   }
 
-  const declarations = namedContexts.sort(compareContexts).map<VariableDeclarator>((context) => ({
-    type: 'VariableDeclarator',
-    id: identifier(context.name!),
-    init: generate(context.value, true)
+  const params = namedContexts.sort(compareContexts).map<Pattern>((context) => ({
+    type: 'AssignmentPattern',
+    left: identifier(context.name!),
+    right: generate(context.value, true)
   }))
 
   const rootContext = collectedContexts.get(value)
@@ -915,23 +915,10 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
     callee: {
       type: 'ArrowFunctionExpression',
       expression: false,
-      params: [],
+      params,
       body: {
-        type: 'BlockStatement',
-        body: [
-          {
-            type: 'VariableDeclaration',
-            kind: 'const',
-            declarations
-          },
-          {
-            type: 'ReturnStatement',
-            argument: {
-              type: 'SequenceExpression',
-              expressions: finalizers
-            }
-          }
-        ]
+        type: 'SequenceExpression',
+        expressions: finalizers
       }
     }
   }

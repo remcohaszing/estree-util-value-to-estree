@@ -477,7 +477,7 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
     }
 
     if (
-      Temporal !== undefined &&
+      typeof Temporal !== 'undefined' &&
       (value instanceof Temporal.Duration ||
         value instanceof Temporal.Instant ||
         value instanceof Temporal.PlainDate ||
@@ -580,7 +580,7 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
       }
     }
 
-    if (Temporal !== undefined) {
+    if (typeof Temporal !== 'undefined') {
       if (val instanceof Temporal.Duration) {
         return temporalConstructor('Duration', [
           val.years,

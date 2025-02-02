@@ -326,15 +326,15 @@ function symbolToEstree(symbol: symbol): Expression {
  *   The ESTree properry node.
  */
 function property(key: string | symbol, value: Expression): Property {
-  const computed = typeof key !== 'string'
+  const isString = typeof key === 'string'
 
   return {
     type: 'Property',
     method: false,
     shorthand: false,
-    computed,
+    computed: key === '__proto__' || !isString,
     kind: 'init',
-    key: computed ? symbolToEstree(key) : literal(key),
+    key: isString ? literal(key) : symbolToEstree(key),
     value
   }
 }
@@ -794,7 +794,15 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
 
     const properties: Property[] = []
     if (Object.getPrototypeOf(val) == null) {
-      properties.push(property('__proto__', literal(null)))
+      properties.push({
+        type: 'Property',
+        method: false,
+        shorthand: false,
+        computed: false,
+        kind: 'init',
+        key: identifier('__proto__'),
+        value: literal(null)
+      })
     }
 
     const object = val as Record<string | symbol, unknown>
@@ -826,17 +834,31 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
         childContext &&
         namedContexts.indexOf(childContext) >= namedContexts.indexOf(context)
       ) {
-        childContext.assignment = {
-          type: 'AssignmentExpression',
-          operator: '=',
-          left: {
-            type: 'MemberExpression',
-            computed: true,
-            optional: false,
-            object: identifier(context.name!),
-            property: generate(key)
-          },
-          right: childContext.assignment || generate(child)
+        if (key === '__proto__') {
+          propertyDescriptors.push(
+            property(key, {
+              type: 'ObjectExpression',
+              properties: [
+                property('value', generate(child)),
+                property('configurable', literal(true)),
+                property('enumerable', literal(true)),
+                property('writable', literal(true))
+              ]
+            })
+          )
+        } else {
+          childContext.assignment = {
+            type: 'AssignmentExpression',
+            operator: '=',
+            left: {
+              type: 'MemberExpression',
+              computed: true,
+              optional: false,
+              object: identifier(context.name!),
+              property: generate(key)
+            },
+            right: childContext.assignment || generate(child)
+          }
         }
       } else {
         properties.push(property(key, generate(child)))

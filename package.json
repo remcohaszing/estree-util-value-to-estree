@@ -29,10 +29,10 @@
     "test": "c8 node --enable-source-maps dist/test.js"
   },
   "dependencies": {
-    "@js-temporal/polyfill": "^0.4.0",
     "@types/estree": "^1.0.0"
   },
   "devDependencies": {
+    "@js-temporal/polyfill": "^0.4.0",
     "@types/node": "^22.0.0",
     "astring": "^1.0.0",
     "c8": "^9.0.0",

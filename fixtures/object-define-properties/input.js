@@ -5,6 +5,10 @@ export default Object.defineProperties(
     string: 'Hello'
   },
   {
+    ['__proto__']: {
+      value: {},
+      configurable: true
+    },
     configurable: {
       value: 'Only configurable',
       configurable: true
@@ -16,6 +20,9 @@ export default Object.defineProperties(
     writable: {
       value: 'Only writable',
       writable: true
+    },
+    [Symbol.for('global')]: {
+      value: {}
     }
   }
 )
@@ -29,6 +36,10 @@ const withoutPreserveReferences = Object.defineProperties(
     string: 'Hello'
   },
   {
+    ['__proto__']: {
+      value: {},
+      configurable: true
+    },
     configurable: {
       value: 'Only configurable',
       configurable: true
@@ -40,6 +51,9 @@ const withoutPreserveReferences = Object.defineProperties(
     writable: {
       value: 'Only writable',
       writable: true
+    },
+    [Symbol.for('global')]: {
+      value: {}
     }
   }
 )

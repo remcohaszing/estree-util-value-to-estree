@@ -806,7 +806,7 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
     }
 
     const object = val as Record<string | symbol, unknown>
-    const propertyDescriptors: Property[] = []
+    const propertyDescriptors: [string | symbol, ObjectExpression][] = []
     for (const key of Reflect.ownKeys(val)) {
       // TODO [>=4] Throw an error for getters.
       const child = object[key]
@@ -823,20 +823,19 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
         if (writable) {
           propertyDescriptor.push(property('writable', literal(true)))
         }
-        propertyDescriptors.push(
-          property(key, {
-            type: 'ObjectExpression',
-            properties: propertyDescriptor
-          })
-        )
+        propertyDescriptors.push([
+          key,
+          { type: 'ObjectExpression', properties: propertyDescriptor }
+        ])
       } else if (
         context &&
         childContext &&
         namedContexts.indexOf(childContext) >= namedContexts.indexOf(context)
       ) {
         if (key === '__proto__') {
-          propertyDescriptors.push(
-            property(key, {
+          propertyDescriptors.push([
+            key,
+            {
               type: 'ObjectExpression',
               properties: [
                 property('value', generate(child)),
@@ -844,8 +843,8 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
                 property('enumerable', literal(true)),
                 property('writable', literal(true))
               ]
-            })
-          )
+            }
+          ])
         } else {
           childContext.assignment = {
             type: 'AssignmentExpression',
@@ -871,24 +870,29 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
     }
 
     if (propertyDescriptors.length) {
-      if (!context) {
-        return methodCall(identifier('Object'), 'defineProperties', [
-          objectExpression,
+      let name: string
+      let args: Expression[]
+
+      if (propertyDescriptors.length === 1) {
+        const [[key, expression]] = propertyDescriptors
+        name = 'defineProperty'
+        args = [typeof key === 'string' ? literal(key) : symbolToEstree(key), expression]
+      } else {
+        name = 'defineProperties'
+        args = [
           {
             type: 'ObjectExpression',
-            properties: propertyDescriptors
+            properties: propertyDescriptors.map(([key, expression]) => property(key, expression))
           }
-        ])
+        ]
+      }
+
+      if (!context) {
+        return methodCall(identifier('Object'), name, [objectExpression, ...args])
       }
 
       context.assignment = replaceAssignment(
-        methodCall(identifier('Object'), 'defineProperties', [
-          identifier(context.name!),
-          {
-            type: 'ObjectExpression',
-            properties: propertyDescriptors
-          }
-        ]),
+        methodCall(identifier('Object'), name, [identifier(context.name!), ...args]),
         context.assignment
       )
     }

@@ -9,13 +9,11 @@ export default ((
     name: '$0'
   }
 ) => (
-  Object.defineProperties($1, {
-    ['__proto__']: {
-      value: $0,
-      configurable: true,
-      enumerable: true,
-      writable: true
-    }
+  Object.defineProperty($1, '__proto__', {
+    value: $0,
+    configurable: true,
+    enumerable: true,
+    writable: true
   }),
   $0
 ))()

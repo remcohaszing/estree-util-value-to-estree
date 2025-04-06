@@ -7,6 +7,12 @@ export default ((
   }
 ) =>
   ($0['assignment'] = Object.defineProperties($0, {
+    ['__proto__']: {
+      value: $0,
+      configurable: true,
+      enumerable: true,
+      writable: true
+    },
     configurable: {
       value: $0,
       configurable: true
@@ -18,6 +24,9 @@ export default ((
     writable: {
       value: $1,
       writable: true
+    },
+    [Symbol.for('global')]: {
+      value: {}
     }
   })))()
 

@@ -129,7 +129,6 @@ function isStringReconstructable(value: unknown): value is URL | URLSearchParams
  * @returns
  *   Whether or not the value can be constructed from its `valueOf()` result.
  */
-// eslint-disable-next-line @typescript-eslint/ban-types
 function isValueReconstructable(value: unknown): value is Boolean | Date | Number | String {
   return (
     value instanceof Boolean ||

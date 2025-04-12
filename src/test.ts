@@ -46,7 +46,7 @@ test('throw for local symbols', () => {
   assert.throws(
     () => valueToEstree(symbol),
     (error) => {
-      assert(error instanceof TypeError)
+      assert.ok(error instanceof TypeError)
       assert.equal(error.message, 'Only global symbols are supported, got: Symbol(local)')
       assert.equal(error.cause, symbol)
       return true
@@ -60,7 +60,7 @@ test('throw for Temporal.PlainDate custom calendar', () => {
   assert.throws(
     () => valueToEstree(plainDate),
     (error) => {
-      assert(error instanceof Error)
+      assert.ok(error instanceof Error)
       assert.equal(error.message, 'Unsupported calendar: gregory')
       assert.equal(error.cause, calendar)
       return true
@@ -74,7 +74,7 @@ test('throw for Temporal.PlainDateTime custom calendar', () => {
   assert.throws(
     () => valueToEstree(plainDate),
     (error) => {
-      assert(error instanceof Error)
+      assert.ok(error instanceof Error)
       assert.equal(error.message, 'Unsupported calendar: gregory')
       assert.equal(error.cause, calendar)
       return true
@@ -88,7 +88,7 @@ test('throw for Temporal.PlainMonthDay custom calendar', () => {
   assert.throws(
     () => valueToEstree(plainDate),
     (error) => {
-      assert(error instanceof Error)
+      assert.ok(error instanceof Error)
       assert.equal(error.message, 'Unsupported calendar: gregory')
       assert.equal(error.cause, calendar)
       return true
@@ -102,7 +102,7 @@ test('throw for Temporal.PlainYearMonth custom calendar', () => {
   assert.throws(
     () => valueToEstree(plainDate),
     (error) => {
-      assert(error instanceof Error)
+      assert.ok(error instanceof Error)
       assert.equal(error.message, 'Unsupported calendar: gregory')
       assert.equal(error.cause, calendar)
       return true
@@ -116,7 +116,7 @@ test('throw for Temporal.ZonedDateTime custom calendar', () => {
   assert.throws(
     () => valueToEstree(plainDate),
     (error) => {
-      assert(error instanceof Error)
+      assert.ok(error instanceof Error)
       assert.equal(error.message, 'Unsupported calendar: gregory')
       assert.equal(error.cause, calendar)
       return true
@@ -129,7 +129,7 @@ test('throw for unsupported values', () => {
   assert.throws(
     () => valueToEstree(fn),
     (error) => {
-      assert(error instanceof TypeError)
+      assert.ok(error instanceof TypeError)
       assert.equal(error.message, 'Unsupported value: () => null')
       assert.equal(error.cause, fn)
       return true
@@ -144,7 +144,7 @@ test('throw for unsupported values', () => {
   assert.throws(
     () => valueToEstree(a),
     (error) => {
-      assert(error instanceof TypeError)
+      assert.ok(error instanceof TypeError)
       assert.equal(error.message, 'Unsupported value: [object Object]')
       assert.equal(error.cause, a)
       return true
@@ -158,7 +158,7 @@ test('throw for cyclic references', () => {
   assert.throws(
     () => valueToEstree(object),
     (error) => {
-      assert(error instanceof Error)
+      assert.ok(error instanceof Error)
       assert.equal(error.message, 'Found circular reference: [object Object]')
       assert.equal(error.cause, object)
       return true
@@ -183,7 +183,7 @@ test('transform to json on unsupported values w/ `instanceAsObject`', () => {
   assert.throws(
     () => valueToEstree(point),
     (error) => {
-      assert(error instanceof TypeError)
+      assert.ok(error instanceof TypeError)
       assert.equal(error.message, 'Unsupported value: [object Object]')
       assert.equal(error.cause, point)
       return true

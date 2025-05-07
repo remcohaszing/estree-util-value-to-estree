@@ -159,6 +159,7 @@ function isTypedArray(
 ): value is
   | BigInt64Array
   | BigUint64Array
+  | Float16Array
   | Float32Array
   | Float64Array
   | Int8Array
@@ -171,6 +172,7 @@ function isTypedArray(
   return (
     value instanceof BigInt64Array ||
     value instanceof BigUint64Array ||
+    (typeof Float16Array !== 'undefined' && value instanceof Float16Array) ||
     value instanceof Float32Array ||
     value instanceof Float64Array ||
     value instanceof Int8Array ||

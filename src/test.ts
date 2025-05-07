@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { test } from 'node:test'
 
 import { Temporal as LocalTemporal } from '@js-temporal/polyfill'
+import { Float16Array } from '@petamoriken/float16'
 import { generate } from 'astring'
 import { valueToEstree } from 'estree-util-value-to-estree'
 import { testFixturesDirectory } from 'snapshot-fixtures'
@@ -10,6 +11,8 @@ declare global {
   // eslint-disable-next-line no-var, @typescript-eslint/naming-convention
   var Temporal: typeof LocalTemporal
 }
+
+globalThis.Float16Array ??= Float16Array
 globalThis.Temporal = LocalTemporal
 
 testFixturesDirectory({

@@ -49,6 +49,7 @@ Currently the following types are supported:
 - [`Boolean`](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean)
 - [`Buffer`](https://nodejs.org/api/buffer.html)
 - [`Date`](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Date)
+- [`Float16Array`](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Float16Array)
 - [`Float32Array`](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Float32Array)
 - [`Float64Array`](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Float64Array)
 - [`Int16Array`](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Int16Array)

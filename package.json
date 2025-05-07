@@ -13,6 +13,7 @@
   "author": "Remco Haszing <remcohaszing@gmail.com>",
   "license": "MIT",
   "repository": "remcohaszing/estree-util-value-to-estree",
+  "sideEffects": false,
   "bugs": "https://github.com/remcohaszing/estree-util-value-to-estree/issues",
   "homepage": "https://github.com/remcohaszing/estree-util-value-to-estree#readme",
   "funding": "https://github.com/sponsors/remcohaszing",

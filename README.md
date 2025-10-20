@@ -13,6 +13,7 @@ Convert a JavaScript value to an [ESTree](https://github.com/estree/estree) expr
 - [Usage](#usage)
 - [API](#api)
   - [`valueToEstree(value, options?)`](#valuetoestreevalue-options)
+- [Examples](#examples)
 - [Compatibility](#compatibility)
 - [License](#license)
 
@@ -52,9 +53,9 @@ Currently the following types are supported:
 - [`Float16Array`](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Float16Array)
 - [`Float32Array`](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Float32Array)
 - [`Float64Array`](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Float64Array)
+- [`Int8Array`](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Int8Array)
 - [`Int16Array`](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Int16Array)
 - [`Int32Array`](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Int32Array)
-- [`Int8Array`](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Int8Array)
 - [`Map`](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Map)
 - [`Number`](https://developer.mozilla.org/docs/Glossary/Number)
 - [`RegExp`](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/RegExp)
@@ -75,199 +76,38 @@ Currently the following types are supported:
 - [`URL`](https://developer.mozilla.org/docs/Web/API/URL)
 - [`URLSearchParams`](https://developer.mozilla.org/docs/Web/API/URLSearchParams)
 
-If `options.instanceAsObject` is set to `true`, other objects are turned into plain object.
-
 ```ts
-import assert from 'node:assert/strict'
-
 import { valueToEstree } from 'estree-util-value-to-estree'
 
 const result = valueToEstree({
-  null: null,
-  undefined,
   string: 'Hello world!',
-  number: 42,
-  negativeNumber: -1337,
-  infinity: Number.POSITIVE_INFINITY,
-  notANumber: Number.NaN,
-  regex: /\w+/i,
-  date: new Date('1970-01-01'),
-  array: ['I’m an array item!'],
-  object: { nested: 'value' }
+  number: 42
 })
 
-assert.deepEqual(result, {
-  type: 'ObjectExpression',
-  properties: [
-    {
-      type: 'Property',
-      method: false,
-      shorthand: false,
-      computed: false,
-      kind: 'init',
-      key: { type: 'Literal', value: 'null' },
-      value: { type: 'Literal', value: null }
-    },
-    {
-      type: 'Property',
-      method: false,
-      shorthand: false,
-      computed: false,
-      kind: 'init',
-      key: { type: 'Literal', value: 'undefined' },
-      value: { type: 'Identifier', name: 'undefined' }
-    },
-    {
-      type: 'Property',
-      method: false,
-      shorthand: false,
-      computed: false,
-      kind: 'init',
-      key: { type: 'Literal', value: 'string' },
-      value: { type: 'Literal', value: 'Hello world!' }
-    },
-    {
-      type: 'Property',
-      method: false,
-      shorthand: false,
-      computed: false,
-      kind: 'init',
-      key: { type: 'Literal', value: 'number' },
-      value: { type: 'Literal', value: 42 }
-    },
-    {
-      type: 'Property',
-      method: false,
-      shorthand: false,
-      computed: false,
-      kind: 'init',
-      key: { type: 'Literal', value: 'negativeNumber' },
-      value: {
-        type: 'UnaryExpression',
-        operator: '-',
-        prefix: true,
-        argument: { type: 'Literal', value: 1337 }
-      }
-    },
-    {
-      type: 'Property',
-      method: false,
-      shorthand: false,
-      computed: false,
-      kind: 'init',
-      key: { type: 'Literal', value: 'infinity' },
-      value: { type: 'Identifier', name: 'Infinity' }
-    },
-    {
-      type: 'Property',
-      method: false,
-      shorthand: false,
-      computed: false,
-      kind: 'init',
-      key: { type: 'Literal', value: 'notANumber' },
-      value: { type: 'Identifier', name: 'NaN' }
-    },
-    {
-      type: 'Property',
-      method: false,
-      shorthand: false,
-      computed: false,
-      kind: 'init',
-      key: { type: 'Literal', value: 'regex' },
-      value: {
-        type: 'Literal',
-        value: /\w+/i,
-        regex: { pattern: '\\w+', flags: 'i' }
-      }
-    },
-    {
-      type: 'Property',
-      method: false,
-      shorthand: false,
-      computed: false,
-      kind: 'init',
-      key: { type: 'Literal', value: 'date' },
-      value: {
-        type: 'NewExpression',
-        callee: { type: 'Identifier', name: 'Date' },
-        arguments: [{ type: 'Literal', value: 0 }]
-      }
-    },
-    {
-      type: 'Property',
-      method: false,
-      shorthand: false,
-      computed: false,
-      kind: 'init',
-      key: { type: 'Literal', value: 'array' },
-      value: {
-        type: 'ArrayExpression',
-        elements: [{ type: 'Literal', value: 'I’m an array item!' }]
-      }
-    },
-    {
-      type: 'Property',
-      method: false,
-      shorthand: false,
-      computed: false,
-      kind: 'init',
-      key: { type: 'Literal', value: 'object' },
-      value: {
-        type: 'ObjectExpression',
-        properties: [
-          {
-            type: 'Property',
-            method: false,
-            shorthand: false,
-            computed: false,
-            kind: 'init',
-            key: { type: 'Literal', value: 'nested' },
-            value: { type: 'Literal', value: 'value' }
-          }
-        ]
-      }
-    }
-  ]
-})
-
-class Point {
-  line: number
-
-  column: number
-
-  constructor(line: number, column: number) {
-    this.line = line
-    this.column = column
-  }
-}
-
-// Normally complex objects throw.
-assert.throws(() => valueToEstree(new Point(2, 3)))
-
-// `instanceAsObject: true` treats them as plain objects.
-assert.deepEqual(valueToEstree(new Point(2, 3), { instanceAsObject: true }), {
-  type: 'ObjectExpression',
-  properties: [
-    {
-      type: 'Property',
-      method: false,
-      shorthand: false,
-      computed: false,
-      kind: 'init',
-      key: { type: 'Literal', value: 'line' },
-      value: { type: 'Literal', value: 2 }
-    },
-    {
-      type: 'Property',
-      method: false,
-      shorthand: false,
-      computed: false,
-      kind: 'init',
-      key: { type: 'Literal', value: 'column' },
-      value: { type: 'Literal', value: 3 }
-    }
-  ]
-})
+console.log(result)
+// {
+//   type: 'ObjectExpression',
+//   properties: [
+//     {
+//       type: 'Property',
+//       method: false,
+//       shorthand: false,
+//       computed: false,
+//       kind: 'init',
+//       key: { type: 'Literal', value: 'string' },
+//       value: { type: 'Literal', value: 'Hello world!' }
+//     },
+//     {
+//       type: 'Property',
+//       method: false,
+//       shorthand: false,
+//       computed: false,
+//       kind: 'init',
+//       key: { type: 'Literal', value: 'number' },
+//       value: { type: 'Literal', value: 42 }
+//     }
+//   ]
+// })
 ```
 
 ## API
@@ -285,6 +125,53 @@ Convert a value to an [ESTree](https://github.com/estree/estree) node.
 - `preserveReferences` (boolean, default: `false`) — If true, preserve references to the same object
   found within the input. This also allows to serialize recursive structures. If needed, the
   resulting expression will be an iife.
+
+## Examples
+
+By default custom types result in an error. If `options.instanceAsObject` is set to `true` however,
+they are turned into plain objects.
+
+```ts
+import { valueToEstree } from 'estree-util-value-to-estree'
+
+class Point {
+  line: number
+
+  column: number
+
+  constructor(line: number, column: number) {
+    this.line = line
+    this.column = column
+  }
+}
+
+const point = new Point(2, 3)
+const result = valueToEstree(point, { instanceAsObject: true })
+console.log(result)
+// {
+//   type: 'ObjectExpression',
+//   properties: [
+//     {
+//       type: 'Property',
+//       method: false,
+//       shorthand: false,
+//       computed: false,
+//       kind: 'init',
+//       key: { type: 'Literal', value: 'line' },
+//       value: { type: 'Literal', value: 2 }
+//     },
+//     {
+//       type: 'Property',
+//       method: false,
+//       shorthand: false,
+//       computed: false,
+//       kind: 'init',
+//       key: { type: 'Literal', value: 'column' },
+//       value: { type: 'Literal', value: 3 }
+//     }
+//   ]
+// }
+```
 
 ## Compatibility
 

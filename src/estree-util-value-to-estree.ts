@@ -100,13 +100,7 @@ function processNumber(number: bigint | number): Expression {
  *   An ESTree array expression whose elements match the input numbers.
  */
 function processNumberArray(numbers: Iterable<bigint | number>): Expression {
-  const elements: Expression[] = []
-
-  for (const value of numbers) {
-    elements.push(processNumber(value))
-  }
-
-  return { type: 'ArrayExpression', elements }
+  return { type: 'ArrayExpression', elements: Array.from(numbers, processNumber) }
 }
 
 /**

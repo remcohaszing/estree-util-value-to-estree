@@ -8,7 +8,7 @@ import { valueToEstree } from 'estree-util-value-to-estree'
 import { testFixturesDirectory } from 'snapshot-fixtures'
 
 declare global {
-  // eslint-disable-next-line no-var, @typescript-eslint/naming-convention
+  // eslint-disable-next-line @typescript-eslint/naming-convention
   var Temporal: typeof LocalTemporal
 }
 

@@ -1,12 +1,12 @@
-import { type Temporal as LocalTemporal } from '@js-temporal/polyfill'
-import {
-  type ArrayExpression,
-  type Expression,
-  type Identifier,
-  type ObjectExpression,
-  type Pattern,
-  type Property,
-  type SimpleLiteral
+import type { Temporal as LocalTemporal } from '@js-temporal/polyfill'
+import type {
+  ArrayExpression,
+  Expression,
+  Identifier,
+  ObjectExpression,
+  Pattern,
+  Property,
+  SimpleLiteral
 } from 'estree'
 
 /**
@@ -291,7 +291,7 @@ function replaceAssignment(expression: Expression, assignment: Expression | unde
  * Create an ESTree epxression to represent a symbol. Global and well-known symbols are supported.
  *
  * @param symbol
- *   THe symbol to represent.
+ *   The symbol to represent.
  * @returns
  *   An ESTree expression to represent the symbol.
  */

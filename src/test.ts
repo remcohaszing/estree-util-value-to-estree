@@ -1,19 +1,14 @@
+import 'temporal-polyfill/global'
+
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 
-import { Temporal as LocalTemporal } from '@js-temporal/polyfill'
 import { Float16Array } from '@petamoriken/float16'
 import { generate } from 'astring'
 import { valueToEstree } from 'estree-util-value-to-estree'
 import { testFixturesDirectory } from 'snapshot-fixtures'
 
-declare global {
-  // eslint-disable-next-line @typescript-eslint/naming-convention
-  var Temporal: typeof LocalTemporal
-}
-
 globalThis.Float16Array ??= Float16Array
-globalThis.Temporal = LocalTemporal
 
 testFixturesDirectory({
   directory: new URL('../fixtures', import.meta.url),
@@ -52,76 +47,6 @@ test('throw for local symbols', () => {
       assert.ok(error instanceof TypeError)
       assert.equal(error.message, 'Only global symbols are supported, got: Symbol(local)')
       assert.equal(error.cause, symbol)
-      return true
-    }
-  )
-})
-
-test('throw for Temporal.PlainDate custom calendar', () => {
-  const calendar = new Temporal.Calendar('gregory')
-  const plainDate = new Temporal.PlainDate(2000, 1, 1, calendar)
-  assert.throws(
-    () => valueToEstree(plainDate),
-    (error) => {
-      assert.ok(error instanceof Error)
-      assert.equal(error.message, 'Unsupported calendar: gregory')
-      assert.equal(error.cause, calendar)
-      return true
-    }
-  )
-})
-
-test('throw for Temporal.PlainDateTime custom calendar', () => {
-  const calendar = new Temporal.Calendar('gregory')
-  const plainDate = new Temporal.PlainDateTime(2000, 1, 1, 0, 0, 0, 0, 0, 0, calendar)
-  assert.throws(
-    () => valueToEstree(plainDate),
-    (error) => {
-      assert.ok(error instanceof Error)
-      assert.equal(error.message, 'Unsupported calendar: gregory')
-      assert.equal(error.cause, calendar)
-      return true
-    }
-  )
-})
-
-test('throw for Temporal.PlainMonthDay custom calendar', () => {
-  const calendar = new Temporal.Calendar('gregory')
-  const plainDate = new Temporal.PlainMonthDay(12, 1, calendar)
-  assert.throws(
-    () => valueToEstree(plainDate),
-    (error) => {
-      assert.ok(error instanceof Error)
-      assert.equal(error.message, 'Unsupported calendar: gregory')
-      assert.equal(error.cause, calendar)
-      return true
-    }
-  )
-})
-
-test('throw for Temporal.PlainYearMonth custom calendar', () => {
-  const calendar = new Temporal.Calendar('gregory')
-  const plainDate = new Temporal.PlainYearMonth(2000, 1, calendar)
-  assert.throws(
-    () => valueToEstree(plainDate),
-    (error) => {
-      assert.ok(error instanceof Error)
-      assert.equal(error.message, 'Unsupported calendar: gregory')
-      assert.equal(error.cause, calendar)
-      return true
-    }
-  )
-})
-
-test('throw for Temporal.ZonedDateTime custom calendar', () => {
-  const calendar = new Temporal.Calendar('gregory')
-  const plainDate = new Temporal.ZonedDateTime(0n, 'UTC', calendar)
-  assert.throws(
-    () => valueToEstree(plainDate),
-    (error) => {
-      assert.ok(error instanceof Error)
-      assert.equal(error.message, 'Unsupported calendar: gregory')
-      assert.equal(error.cause, calendar)
       return true
     }
   )

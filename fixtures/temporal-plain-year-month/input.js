@@ -1,9 +1,9 @@
 // Used as input
 // { preserveReferences: true }
-export default new Temporal.PlainYearMonth(1234, 5, 'islamicc', 6)
+export default Temporal.PlainYearMonth.from('1234-04-09[u-ca=islamic-civil]')
 
 // -------------------------------------------------------------------------------------------------
 
 // Default output
 // { preserveReferences: false }
-const withoutPreserveReferences = new Temporal.PlainYearMonth(1234, 5, 'islamicc', 6)
+const withoutPreserveReferences = Temporal.PlainYearMonth.from('1234-04-09[u-ca=islamic-civil]')

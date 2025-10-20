@@ -1,9 +1,9 @@
 // Used as input
 // { preserveReferences: true }
-export default new Temporal.Duration(1, 2, 3, 4, 5, 6)
+export default Temporal.Duration.from('P1Y2M3W4DT5H6M')
 
 // -------------------------------------------------------------------------------------------------
 
 // Default output
 // { preserveReferences: false }
-const withoutPreserveReferences = new Temporal.Duration(1, 2, 3, 4, 5, 6)
+const withoutPreserveReferences = Temporal.Duration.from('P1Y2M3W4DT5H6M')

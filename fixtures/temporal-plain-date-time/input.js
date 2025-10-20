@@ -1,20 +1,11 @@
 // Used as input
 // { preserveReferences: true }
-export default new Temporal.PlainDateTime(2008, 7, 6, 5, 4, 3, 2, 1, 0, 'japanese')
+export default Temporal.PlainDateTime.from('2008-07-06T05:04:03.002001[u-ca=japanese]')
 
 // -------------------------------------------------------------------------------------------------
 
 // Default output
 // { preserveReferences: false }
-const withoutPreserveReferences = new Temporal.PlainDateTime(
-  2008,
-  7,
-  6,
-  5,
-  4,
-  3,
-  2,
-  1,
-  0,
-  'japanese'
+const withoutPreserveReferences = Temporal.PlainDateTime.from(
+  '2008-07-06T05:04:03.002001[u-ca=japanese]'
 )

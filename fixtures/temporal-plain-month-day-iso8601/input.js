@@ -1,9 +1,9 @@
 // Used as input
 // { preserveReferences: true }
-export default new Temporal.PlainMonthDay(3, 14)
+export default Temporal.PlainMonthDay.from('03-14')
 
 // -------------------------------------------------------------------------------------------------
 
 // Default output
 // { preserveReferences: false }
-const withoutPreserveReferences = new Temporal.PlainMonthDay(3, 14)
+const withoutPreserveReferences = Temporal.PlainMonthDay.from('03-14')

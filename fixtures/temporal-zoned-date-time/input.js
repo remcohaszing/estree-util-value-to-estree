@@ -1,13 +1,13 @@
 // Used as input
 // { preserveReferences: true }
-export default new Temporal.ZonedDateTime(1234567890n, 'Europe/Amsterdam', 'gregory')
+export default Temporal.ZonedDateTime.from(
+  '1970-01-01T01:00:01.23456789+01:00[Europe/Amsterdam][u-ca=gregory]'
+)
 
 // -------------------------------------------------------------------------------------------------
 
 // Default output
 // { preserveReferences: false }
-const withoutPreserveReferences = new Temporal.ZonedDateTime(
-  1234567890n,
-  'Europe/Amsterdam',
-  'gregory'
+const withoutPreserveReferences = Temporal.ZonedDateTime.from(
+  '1970-01-01T01:00:01.23456789+01:00[Europe/Amsterdam][u-ca=gregory]'
 )

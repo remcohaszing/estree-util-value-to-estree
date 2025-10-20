@@ -1,9 +1,9 @@
 // Used as input
 // { preserveReferences: true }
-export default new Temporal.PlainTime(1, 2, 3, 4, 5, 6)
+export default Temporal.PlainTime.from('01:02:03.004005006')
 
 // -------------------------------------------------------------------------------------------------
 
 // Default output
 // { preserveReferences: false }
-const withoutPreserveReferences = new Temporal.PlainTime(1, 2, 3, 4, 5, 6)
+const withoutPreserveReferences = Temporal.PlainTime.from('01:02:03.004005006')

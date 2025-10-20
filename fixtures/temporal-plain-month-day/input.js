@@ -1,9 +1,9 @@
 // Used as input
 // { preserveReferences: true }
-export default new Temporal.PlainMonthDay(3, 14, 'japanese', 2000)
+export default Temporal.PlainMonthDay.from('1972-03-14[u-ca=japanese]')
 
 // -------------------------------------------------------------------------------------------------
 
 // Default output
 // { preserveReferences: false }
-const withoutPreserveReferences = new Temporal.PlainMonthDay(3, 14, 'japanese', 2000)
+const withoutPreserveReferences = Temporal.PlainMonthDay.from('1972-03-14[u-ca=japanese]')

@@ -1,9 +1,9 @@
 // Used as input
 // { preserveReferences: true }
-export default new Temporal.Instant(1234567890123456789n)
+export default Temporal.Instant.from('2009-02-13T23:31:30.123456789Z')
 
 // -------------------------------------------------------------------------------------------------
 
 // Default output
 // { preserveReferences: false }
-const withoutPreserveReferences = new Temporal.Instant(1234567890123456789n)
+const withoutPreserveReferences = Temporal.Instant.from('2009-02-13T23:31:30.123456789Z')

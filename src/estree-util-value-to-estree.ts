@@ -290,7 +290,7 @@ export interface Options {
  * Replace the assigned right hand expression with the new expression.
  *
  * If there is no assignment expression, the original expression is returned. Otherwise the
- * assignment is modified and returned,
+ * assignment is modified and returned.
  *
  * @param expression
  *   The expression to use for the assignment.

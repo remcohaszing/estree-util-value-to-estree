@@ -275,7 +275,7 @@ export interface Options {
    *
    * @default false
    */
-  instanceAsObject?: boolean
+  instanceAsObject?: boolean | undefined
 
   /**
    * If true, preserve references to the same object found within the input. This also allows to
@@ -283,7 +283,7 @@ export interface Options {
    *
    * @default false
    */
-  preserveReferences?: boolean
+  preserveReferences?: boolean | undefined
 
   /**
    * A function to customize the serialization of a value.
@@ -294,7 +294,7 @@ export interface Options {
    *   The value serialized to an ESTree expression. If nothing is returned, the value is processed
    *   by the builtin logic.
    */
-  replacer?: (value: unknown) => Expression | undefined | void
+  replacer?: ((value: unknown) => Expression | undefined | void) | undefined
 }
 
 /**

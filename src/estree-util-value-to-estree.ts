@@ -284,6 +284,17 @@ export interface Options {
    * @default false
    */
   preserveReferences?: boolean
+
+  /**
+   * A function to customize the serialization of a value.
+   *
+   * @param value
+   *   The value to serialize.
+   * @returns
+   *   The value serialized to an ESTree expression. If nothing is returned, the value is processed
+   *   by the builtin logic.
+   */
+  customSerialize?: (value: unknown) => Expression | undefined | void
 }
 
 /**
@@ -379,6 +390,7 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
   const stack: unknown[] = []
   const collectedContexts = new Map<unknown, Context>()
   const namedContexts: Context[] = []
+  const customTrees = new Map<unknown, Expression>()
 
   /**
    * Analyze a value and collect all reference contexts.
@@ -387,11 +399,7 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
    *   The value to analyze.
    */
   function analyze(val: unknown): undefined {
-    if (typeof val === 'function') {
-      throw new TypeError(`Unsupported value: ${val}`, { cause: val })
-    }
-
-    if (typeof val !== 'object') {
+    if (typeof val !== 'object' && typeof val !== 'function') {
       return
     }
 
@@ -425,6 +433,16 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
       referencedBy: new Set(stack),
       value: val
     })
+
+    const estree = options?.customSerialize?.(val)
+    if (estree) {
+      customTrees.set(val, estree)
+      return
+    }
+
+    if (typeof val === 'function') {
+      throw new TypeError(`Unsupported value: ${val}`, { cause: val })
+    }
 
     if (isTypedArray(val)) {
       return
@@ -499,6 +517,11 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
     const context = collectedContexts.get(val)
     if (!isDeclaration && context?.name) {
       return identifier(context.name)
+    }
+
+    const tree = customTrees.get(val)
+    if (tree) {
+      return tree
     }
 
     if (isValueReconstructable(val)) {

@@ -14,6 +14,8 @@ Convert a JavaScript value to an [ESTree](https://github.com/estree/estree) expr
 - [API](#api)
   - [`valueToEstree(value, options?)`](#valuetoestreevalue-options)
 - [Examples](#examples)
+  - [Transform unsupported values into plain objects](#transform-unsupported-values-into-plain-objects)
+  - [Serialize custom values](#serialize-custom-values)
 - [Compatibility](#compatibility)
 - [License](#license)
 
@@ -75,6 +77,7 @@ Currently the following types are supported:
 - [`Uint32Array`](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Uint32Array)
 - [`URL`](https://developer.mozilla.org/docs/Web/API/URL)
 - [`URLSearchParams`](https://developer.mozilla.org/docs/Web/API/URLSearchParams)
+- [custom](#serialize-custom-values)
 
 ```ts
 import { valueToEstree } from 'estree-util-value-to-estree'
@@ -125,8 +128,13 @@ Convert a value to an [ESTree](https://github.com/estree/estree) node.
 - `preserveReferences` (boolean, default: `false`) — If true, preserve references to the same object
   found within the input. This also allows to serialize recursive structures. If needed, the
   resulting expression will be an iife.
+- `customSerialize` (Function) — A function to customize the serialization of a value. It accepts
+  the value to serialize as an argument. It must return the value serialized to an ESTree
+  expression. If nothing is returned, the value is processed by the builtin logic.
 
 ## Examples
+
+### Transform unsupported values into plain objects
 
 By default custom types result in an error. If `options.instanceAsObject` is set to `true` however,
 they are turned into plain objects.
@@ -171,6 +179,44 @@ console.log(result)
 //     }
 //   ]
 // }
+```
+
+### Serialize custom values
+
+You can customize the serialization of values using `customSerialize`. For example, to serialize a
+custom class:
+
+```ts
+import { valueToEstree } from 'estree-util-value-to-estree'
+
+class Point {
+  line: number
+
+  column: number
+
+  constructor(line: number, column: number) {
+    this.line = line
+    this.column = column
+  }
+}
+
+const point = new Point(2, 3)
+
+const result = valueToEstree(point, {
+  customSerialize(value) {
+    if (value instanceof Point) {
+      return {
+        type: 'NewExpression',
+        callee: { type: 'Identifier', name: 'Point' },
+        arguments: [
+          { type: 'Literal', value: value.line },
+          { type: 'Literal', value: value.column }
+        ]
+      }
+    }
+  }
+})
+console.log(result)
 ```
 
 ## Compatibility

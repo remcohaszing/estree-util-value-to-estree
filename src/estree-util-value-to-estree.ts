@@ -294,7 +294,7 @@ export interface Options {
    *   The value serialized to an ESTree expression. If nothing is returned, the value is processed
    *   by the builtin logic.
    */
-  customSerialize?: (value: unknown) => Expression | undefined | void
+  replacer?: (value: unknown) => Expression | undefined | void
 }
 
 /**
@@ -434,7 +434,7 @@ export function valueToEstree(value: unknown, options: Options = {}): Expression
       value: val
     })
 
-    const estree = options?.customSerialize?.(val)
+    const estree = options?.replacer?.(val)
     if (estree) {
       customTrees.set(val, estree)
       return

@@ -128,9 +128,9 @@ Convert a value to an [ESTree](https://github.com/estree/estree) node.
 - `preserveReferences` (boolean, default: `false`) — If true, preserve references to the same object
   found within the input. This also allows to serialize recursive structures. If needed, the
   resulting expression will be an iife.
-- `customSerialize` (Function) — A function to customize the serialization of a value. It accepts
-  the value to serialize as an argument. It must return the value serialized to an ESTree
-  expression. If nothing is returned, the value is processed by the builtin logic.
+- `replacer` (Function) — A function to customize the serialization of a value. It accepts the value
+  to serialize as an argument. It must return the value serialized to an ESTree expression. If
+  nothing is returned, the value is processed by the builtin logic.
 
 ## Examples
 
@@ -183,8 +183,8 @@ console.log(result)
 
 ### Serialize custom values
 
-You can customize the serialization of values using `customSerialize`. For example, to serialize a
-custom class:
+You can customize the serialization of values using the `replacer` option. For example, to serialize
+a custom class:
 
 ```ts
 import { valueToEstree } from 'estree-util-value-to-estree'
@@ -203,7 +203,7 @@ class Point {
 const point = new Point(2, 3)
 
 const result = valueToEstree(point, {
-  customSerialize(value) {
+  replacer(value) {
     if (value instanceof Point) {
       return {
         type: 'NewExpression',

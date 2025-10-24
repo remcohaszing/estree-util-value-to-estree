@@ -143,7 +143,7 @@ test('transform to json on unsupported values with `instanceAsObject`', () => {
   })
 })
 
-test('transform an unsupported value with customSerialize', () => {
+test('transform an unsupported value with replacer', () => {
   class Point {
     line: number
 
@@ -161,7 +161,7 @@ test('transform an unsupported value with customSerialize', () => {
     generate(
       valueToEstree([point, point], {
         preserveReferences: true,
-        customSerialize(value) {
+        replacer(value) {
           if (value instanceof Point) {
             return {
               type: 'NewExpression',
@@ -179,14 +179,14 @@ test('transform an unsupported value with customSerialize', () => {
   )
 })
 
-test('transform a function with customSerialize', () => {
+test('transform a function with replacer', () => {
   assert.deepEqual(
     generate(
       valueToEstree(
         { setTimeout },
         {
           preserveReferences: true,
-          customSerialize(value) {
+          replacer(value) {
             if (value === setTimeout) {
               return { type: 'Identifier', name: 'setTimeout' }
             }

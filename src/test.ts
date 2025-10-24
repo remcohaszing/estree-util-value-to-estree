@@ -94,7 +94,7 @@ test('throw for cyclic references', () => {
   )
 })
 
-test('transform to json on unsupported values w/ `instanceAsObject`', () => {
+test('transform to json on unsupported values with `instanceAsObject`', () => {
   class Point {
     line: number
 
@@ -141,4 +141,59 @@ test('transform to json on unsupported values w/ `instanceAsObject`', () => {
       }
     ]
   })
+})
+
+test('transform an unsupported value with replacer', () => {
+  class Point {
+    line: number
+
+    column: number
+
+    constructor(line: number, column: number) {
+      this.line = line
+      this.column = column
+    }
+  }
+
+  const point = new Point(2, 3)
+
+  assert.deepEqual(
+    generate(
+      valueToEstree([point, point], {
+        preserveReferences: true,
+        replacer(value) {
+          if (value instanceof Point) {
+            return {
+              type: 'NewExpression',
+              callee: { type: 'Identifier', name: 'Point' },
+              arguments: [
+                { type: 'Literal', value: value.line },
+                { type: 'Literal', value: value.column }
+              ]
+            }
+          }
+        }
+      })
+    ),
+    '(($0 = new Point(2, 3)) => ([$0, $0]))()'
+  )
+})
+
+test('transform a function with replacer', () => {
+  assert.deepEqual(
+    generate(
+      valueToEstree(
+        { setTimeout },
+        {
+          preserveReferences: true,
+          replacer(value) {
+            if (value === setTimeout) {
+              return { type: 'Identifier', name: 'setTimeout' }
+            }
+          }
+        }
+      )
+    ),
+    '{\n  "setTimeout": setTimeout\n}'
+  )
 })

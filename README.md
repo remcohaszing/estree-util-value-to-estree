@@ -208,10 +208,7 @@ const result = valueToEstree(point, {
       return {
         type: 'NewExpression',
         callee: { type: 'Identifier', name: 'Point' },
-        arguments: [
-          { type: 'Literal', value: value.line },
-          { type: 'Literal', value: value.column }
-        ]
+        arguments: [valueToEstree(value.line), valueToEstree(value.column)]
       }
     }
   }

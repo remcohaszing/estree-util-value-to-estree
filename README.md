@@ -110,7 +110,7 @@ console.log(result)
 //       value: { type: 'Literal', value: 42 }
 //     }
 //   ]
-// })
+// }
 ```
 
 ## API

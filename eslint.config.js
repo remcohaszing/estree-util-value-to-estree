@@ -5,6 +5,7 @@ export default define([
   {
     rules: {
       '@typescript-eslint/no-wrapper-object-types': 'off',
+      'unicorn/no-array-sort': 'off',
       'unicorn/no-instanceof-builtins': 'off'
     }
   }
